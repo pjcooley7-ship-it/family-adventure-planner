@@ -1,0 +1,195 @@
+export type Json = string | number | boolean | null | { [key: string]: Json } | Json[]
+
+export type TripStatus = 'collecting' | 'matching' | 'matched'
+
+export interface Database {
+  public: {
+    Tables: {
+      trips: {
+        Row: {
+          id: string
+          name: string
+          code: string
+          created_by: string
+          status: TripStatus
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          code?: string
+          created_by: string
+          status?: TripStatus
+          created_at?: string
+        }
+        Update: {
+          name?: string
+          status?: TripStatus
+        }
+      }
+
+      trip_members: {
+        Row: {
+          id: string
+          trip_id: string
+          user_id: string
+          display_name: string
+          joined_at: string
+        }
+        Insert: {
+          id?: string
+          trip_id: string
+          user_id: string
+          display_name: string
+          joined_at?: string
+        }
+        Update: {
+          display_name?: string
+        }
+      }
+
+      preferences: {
+        Row: {
+          id: string
+          trip_id: string
+          user_id: string
+          traveler_name: string
+          origin_city: string
+          adults: number
+          kids: number
+          earliest_departure: string | null
+          latest_return: string | null
+          flexible_dates: boolean
+          trip_duration_min: number
+          trip_duration_max: number
+          budget_min: number
+          budget_max: number
+          currency: string
+          activities: string[]
+          accommodation_types: string[]
+          special_requirements: string | null
+          submitted_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          trip_id: string
+          user_id: string
+          traveler_name: string
+          origin_city: string
+          adults?: number
+          kids?: number
+          earliest_departure?: string | null
+          latest_return?: string | null
+          flexible_dates?: boolean
+          trip_duration_min?: number
+          trip_duration_max?: number
+          budget_min?: number
+          budget_max?: number
+          currency?: string
+          activities?: string[]
+          accommodation_types?: string[]
+          special_requirements?: string | null
+          submitted_at?: string
+          updated_at?: string
+        }
+        Update: {
+          traveler_name?: string
+          origin_city?: string
+          adults?: number
+          kids?: number
+          earliest_departure?: string | null
+          latest_return?: string | null
+          flexible_dates?: boolean
+          trip_duration_min?: number
+          trip_duration_max?: number
+          budget_min?: number
+          budget_max?: number
+          currency?: string
+          activities?: string[]
+          accommodation_types?: string[]
+          special_requirements?: string | null
+          updated_at?: string
+        }
+      }
+
+      destinations: {
+        Row: {
+          id: string
+          trip_id: string
+          city: string
+          country: string
+          country_code: string | null
+          ai_reasoning: string | null
+          match_score: number | null
+          rank: number | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          trip_id: string
+          city: string
+          country: string
+          country_code?: string | null
+          ai_reasoning?: string | null
+          match_score?: number | null
+          rank?: number | null
+          created_at?: string
+        }
+        Update: never
+      }
+
+      votes: {
+        Row: {
+          id: string
+          trip_id: string
+          destination_id: string
+          user_id: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          trip_id: string
+          destination_id: string
+          user_id: string
+          created_at?: string
+        }
+        Update: never
+      }
+    }
+
+    Views: {
+      trip_summary: {
+        Row: {
+          id: string
+          name: string
+          code: string
+          status: TripStatus
+          created_by: string
+          created_at: string
+          member_count: number
+          submitted_count: number
+        }
+      }
+    }
+
+    Functions: {
+      generate_trip_code: {
+        Args: Record<string, never>
+        Returns: string
+      }
+      is_trip_member: {
+        Args: { trip_uuid: string }
+        Returns: boolean
+      }
+    }
+  }
+}
+
+// ── Convenience row types ─────────────────────────────────────
+export type Trip        = Database['public']['Tables']['trips']['Row']
+export type TripMember  = Database['public']['Tables']['trip_members']['Row']
+export type Preferences = Database['public']['Tables']['preferences']['Row']
+export type Destination = Database['public']['Tables']['destinations']['Row']
+export type Vote        = Database['public']['Tables']['votes']['Row']
+export type TripSummary = Database['public']['Views']['trip_summary']['Row']

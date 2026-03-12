@@ -4,6 +4,7 @@ import { toast } from 'sonner'
 import { ArrowLeft, ArrowRight, Check } from 'lucide-react'
 import { StepIndicator } from '@/components/StepIndicator'
 import { FormField, TextInput, Counter, Toggle, Select } from '@/components/FormField'
+import { useSubmitPreferences } from '@/hooks/useTripMutations'
 import {
   DEFAULT_PREFERENCES,
   ACTIVITY_OPTIONS,
@@ -20,6 +21,7 @@ export default function PreferencesPage() {
   const [step, setStep] = useState(0)
   const [prefs, setPrefs] = useState<TravelPreferences>(DEFAULT_PREFERENCES)
   const [animating, setAnimating] = useState(false)
+  const submitPreferences = useSubmitPreferences(tripId!)
 
   function update<K extends keyof TravelPreferences>(key: K, value: TravelPreferences[K]) {
     setPrefs(p => ({ ...p, [key]: value }))
@@ -79,9 +81,7 @@ export default function PreferencesPage() {
   }
 
   function handleSubmit() {
-    // Will wire to Supabase — navigate to trip page for now
-    toast.success('Preferences saved!')
-    navigate(`/trip/${tripId}`)
+    submitPreferences.mutate(prefs)
   }
 
   return (
@@ -196,7 +196,9 @@ export default function PreferencesPage() {
               onMouseLeave={e => { e.currentTarget.style.background = '#c9952a' }}
             >
               {step === STEPS.length - 1 ? (
-                <><Check size={14} /> SUBMIT</>
+                submitPreferences.isPending
+                  ? 'SAVING...'
+                  : <><Check size={14} /> SUBMIT</>
               ) : (
                 <>NEXT <ArrowRight size={14} /></>
               )}
