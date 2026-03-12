@@ -1,0 +1,153 @@
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500&family=Jost:wght@300;400;500;600&display=swap');
+
+@import "tailwindcss";
+
+@theme {
+  --color-ink: #060d1f;
+  --color-ink-light: #0d1830;
+  --color-ink-mid: #1a2845;
+  --color-parchment: #f2eadb;
+  --color-parchment-dark: #e0d4c0;
+  --color-gold: #c9952a;
+  --color-gold-light: #e8b84b;
+  --color-gold-muted: #8a6520;
+  --color-terra: #b05c3a;
+  --color-mist: #7a8fa8;
+
+  --font-display: 'Cormorant Garamond', Georgia, serif;
+  --font-body: 'Jost', sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body, #root {
+  min-height: 100vh;
+}
+
+html {
+  font-family: var(--font-body);
+  background-color: var(--color-ink);
+  color: var(--color-parchment);
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Topographic contour background */
+.topo-bg {
+  background-color: var(--color-ink);
+  background-image:
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 59px,
+      rgba(201, 149, 42, 0.035) 59px,
+      rgba(201, 149, 42, 0.035) 60px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 59px,
+      rgba(201, 149, 42, 0.035) 59px,
+      rgba(201, 149, 42, 0.035) 60px
+    );
+}
+
+.topo-curves {
+  position: relative;
+  overflow: hidden;
+}
+
+.topo-curves::before {
+  content: '';
+  position: absolute;
+  inset: -50%;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='800' height='800'%3E%3Cg fill='none' stroke='rgba(201,149,42,0.07)' stroke-width='1'%3E%3Cellipse cx='400' cy='400' rx='80' ry='50'/%3E%3Cellipse cx='400' cy='400' rx='140' ry='90'/%3E%3Cellipse cx='400' cy='400' rx='200' ry='130'/%3E%3Cellipse cx='400' cy='400' rx='265' ry='175'/%3E%3Cellipse cx='400' cy='400' rx='330' ry='215'/%3E%3Cellipse cx='400' cy='400' rx='395' ry='260'/%3E%3C/g%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 500px 500px;
+  pointer-events: none;
+  animation: drift 80s linear infinite;
+}
+
+@keyframes drift {
+  from { transform: translate(0, 0); }
+  to { transform: translate(50px, 30px); }
+}
+
+/* Gold hairline border utility */
+.border-gold {
+  border: 1px solid rgba(201, 149, 42, 0.35);
+}
+
+/* Parchment card */
+.card-parchment {
+  background: var(--color-parchment);
+  color: var(--color-ink);
+}
+
+/* Display font */
+.font-display {
+  font-family: var(--font-display);
+}
+
+/* Grain overlay */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.03;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 256px 256px;
+  z-index: 9999;
+}
+
+/* Animations */
+@keyframes draw-path {
+  from { stroke-dashoffset: var(--path-length, 1000); }
+  to { stroke-dashoffset: 0; }
+}
+
+@keyframes pulse-dot {
+  0%, 100% { r: 5; opacity: 1; }
+  50% { r: 8; opacity: 0.7; }
+}
+
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(28px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes glow-pulse {
+  0%, 100% { filter: drop-shadow(0 0 6px rgba(201, 149, 42, 0.6)); }
+  50% { filter: drop-shadow(0 0 18px rgba(201, 149, 42, 0.9)); }
+}
+
+.animate-fade-up {
+  opacity: 0;
+  animation: fade-up 0.9s ease forwards;
+}
+
+.animate-fade-in {
+  opacity: 0;
+  animation: fade-in 0.7s ease forwards;
+}
+
+.delay-100 { animation-delay: 0.1s; }
+.delay-200 { animation-delay: 0.2s; }
+.delay-300 { animation-delay: 0.3s; }
+.delay-400 { animation-delay: 0.4s; }
+.delay-500 { animation-delay: 0.5s; }
+.delay-600 { animation-delay: 0.6s; }
+.delay-700 { animation-delay: 0.7s; }
+.delay-800 { animation-delay: 0.8s; }
+.delay-1000 { animation-delay: 1.0s; }
+.delay-1200 { animation-delay: 1.2s; }
