@@ -9,7 +9,7 @@ export default function LandingPage() {
 
   function handleCreate() {
     // Will wire to Supabase — placeholder navigation for now
-    navigate('/trip/demo')
+    navigate('/trip/demo/preferences')
   }
 
   function handleJoin(e: React.FormEvent) {
