@@ -5,6 +5,7 @@ import { RequireAuth } from '@/components/RequireAuth'
 const LandingPage       = lazy(() => import('@/pages/LandingPage'))
 const AuthPage          = lazy(() => import('@/pages/AuthPage'))
 const AuthCallbackPage  = lazy(() => import('@/pages/AuthCallbackPage'))
+const JoinPage          = lazy(() => import('@/pages/JoinPage'))
 const TripPage          = lazy(() => import('@/pages/TripPage'))
 const PreferencesPage   = lazy(() => import('@/pages/PreferencesPage'))
 const ResultsPage       = lazy(() => import('@/pages/ResultsPage'))
@@ -26,6 +27,7 @@ export default function App() {
         <Route path="/"                           element={<LandingPage />} />
         <Route path="/auth"                       element={<AuthPage />} />
         <Route path="/auth/callback"              element={<AuthCallbackPage />} />
+        <Route path="/join/:code"                 element={<RequireAuth><JoinPage /></RequireAuth>} />
         <Route path="/trip/:tripId"               element={<RequireAuth><TripPage /></RequireAuth>} />
         <Route path="/trip/:tripId/preferences"   element={<RequireAuth><PreferencesPage /></RequireAuth>} />
         <Route path="/trip/:tripId/results"       element={<RequireAuth><ResultsPage /></RequireAuth>} />

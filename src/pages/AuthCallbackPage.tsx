@@ -7,7 +7,15 @@ export default function AuthCallbackPage() {
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
-      navigate(session ? '/' : '/auth', { replace: true })
+      if (!session) { navigate('/auth', { replace: true }); return }
+
+      const pendingCode = sessionStorage.getItem('pendingJoinCode')
+      if (pendingCode) {
+        sessionStorage.removeItem('pendingJoinCode')
+        navigate(`/join/${pendingCode}`, { replace: true })
+      } else {
+        navigate('/', { replace: true })
+      }
     })
   }, [navigate])
 

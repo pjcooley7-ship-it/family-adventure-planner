@@ -1,16 +1,13 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { toast } from 'sonner'
 import { FlightPathMap } from '@/components/FlightPathMap'
 import { CreateTripModal } from '@/components/CreateTripModal'
 import { useAuth } from '@/hooks/useAuth'
-import { useJoinTrip } from '@/hooks/useTripMutations'
 import { ArrowRight, Globe, Users, Sparkles } from 'lucide-react'
 
 export default function LandingPage() {
   const navigate = useNavigate()
   const { user } = useAuth()
-  const joinTrip = useJoinTrip()
   const [joinCode, setJoinCode] = useState('')
   const [showCreateModal, setShowCreateModal] = useState(false)
 
@@ -21,18 +18,18 @@ export default function LandingPage() {
 
   function handleJoin(e: React.FormEvent) {
     e.preventDefault()
-    if (!joinCode.trim()) return
-    if (!user) { navigate('/auth'); return }
-    // JoinTrip needs a display name — redirect to auth if not signed in,
-    // otherwise prompt via the join flow (handled in TripPage for now)
-    toast.info('Enter your name when prompted after joining.')
-    joinTrip.mutate({ code: joinCode.trim(), displayName: user.user_metadata?.display_name ?? 'Traveler' })
+    const code = joinCode.trim().toUpperCase()
+    if (!code) return
+    if (!user) {
+      sessionStorage.setItem('pendingJoinCode', code)
+      navigate('/auth')
+      return
+    }
+    navigate(`/join/${code}`)
   }
 
   function handleSignOut() {
-    import('@/integrations/supabase/client').then(({ supabase }) => {
-      supabase.auth.signOut()
-    })
+    import('@/integrations/supabase/client').then(({ supabase }) => { supabase.auth.signOut() })
   }
 
   return (
