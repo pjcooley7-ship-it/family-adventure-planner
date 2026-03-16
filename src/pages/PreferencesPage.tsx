@@ -1,10 +1,12 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { toast } from 'sonner'
 import { ArrowLeft, ArrowRight, Check } from 'lucide-react'
 import { StepIndicator } from '@/components/StepIndicator'
 import { FormField, TextInput, Counter, Toggle, Select } from '@/components/FormField'
 import { useSubmitPreferences } from '@/hooks/useTripMutations'
+import { useTripMembers, useMyPreferences } from '@/hooks/useTrip'
+import { useAuth } from '@/hooks/useAuth'
 import {
   DEFAULT_PREFERENCES,
   ACTIVITY_OPTIONS,
@@ -18,10 +20,43 @@ const STEPS = ['Who', 'When', 'Budget', 'Interests', 'Notes']
 export default function PreferencesPage() {
   const { tripId } = useParams()
   const navigate = useNavigate()
+  const { user } = useAuth()
   const [step, setStep] = useState(0)
   const [prefs, setPrefs] = useState<TravelPreferences>(DEFAULT_PREFERENCES)
   const [animating, setAnimating] = useState(false)
   const submitPreferences = useSubmitPreferences(tripId!)
+
+  const { data: members = [] } = useTripMembers(tripId!)
+  const { data: existingPrefs } = useMyPreferences(tripId!, user?.id)
+
+  // Derive display name from member record — not editable
+  const myMember = members.find(m => m.user_id === user?.id)
+  const displayName = myMember?.display_name ?? ''
+
+  // Pre-fill form from existing preferences (edit flow) or member name (first time)
+  useEffect(() => {
+    if (existingPrefs) {
+      setPrefs({
+        travelerName:        existingPrefs.traveler_name,
+        originCity:          existingPrefs.origin_city,
+        adults:              existingPrefs.adults,
+        kids:                existingPrefs.kids,
+        earliestDeparture:   existingPrefs.earliest_departure ?? '',
+        latestReturn:        existingPrefs.latest_return ?? '',
+        flexibleDates:       existingPrefs.flexible_dates,
+        tripDurationMin:     existingPrefs.trip_duration_min,
+        tripDurationMax:     existingPrefs.trip_duration_max,
+        budgetMin:           existingPrefs.budget_min,
+        budgetMax:           existingPrefs.budget_max,
+        currency:            existingPrefs.currency,
+        activities:          existingPrefs.activities,
+        accommodationTypes:  existingPrefs.accommodation_types,
+        specialRequirements: existingPrefs.special_requirements ?? '',
+      })
+    } else if (displayName) {
+      setPrefs(p => ({ ...p, travelerName: displayName }))
+    }
+  }, [existingPrefs, displayName])
 
   function update<K extends keyof TravelPreferences>(key: K, value: TravelPreferences[K]) {
     setPrefs(p => ({ ...p, [key]: value }))
@@ -47,7 +82,6 @@ export default function PreferencesPage() {
 
   function validateStep(): boolean {
     if (step === 0) {
-      if (!prefs.travelerName.trim()) { toast.error('Please enter your name'); return false }
       if (!prefs.originCity.trim()) { toast.error('Please enter your origin city'); return false }
     }
     if (step === 1) {
@@ -153,7 +187,7 @@ export default function PreferencesPage() {
               transition: 'opacity 0.15s, transform 0.15s',
             }}
           >
-            {step === 0 && <StepWho prefs={prefs} update={update} />}
+            {step === 0 && <StepWho prefs={prefs} update={update} displayName={displayName} />}
             {step === 1 && <StepWhen prefs={prefs} update={update} />}
             {step === 2 && <StepBudget prefs={prefs} update={update} />}
             {step === 3 && <StepInterests prefs={prefs} toggleActivity={toggleActivity} toggleAccommodation={toggleAccommodation} />}
@@ -228,18 +262,31 @@ export default function PreferencesPage() {
 function StepWho({
   prefs,
   update,
+  displayName,
 }: {
   prefs: TravelPreferences
   update: <K extends keyof TravelPreferences>(k: K, v: TravelPreferences[K]) => void
+  displayName: string
 }) {
   return (
     <div className="flex flex-col gap-7">
-      <FormField label="Your name">
-        <TextInput
-          value={prefs.travelerName}
-          onChange={e => update('travelerName', e.target.value)}
-          placeholder="e.g. Sarah"
-        />
+      <FormField label="Traveling as">
+        <div
+          style={{
+            fontFamily: 'var(--font-body)',
+            fontSize: 15,
+            color: '#f2eadb',
+            background: 'rgba(255,255,255,0.02)',
+            border: '1px solid rgba(201,149,42,0.15)',
+            padding: '12px 16px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+          }}
+        >
+          <span>{prefs.travelerName}</span>
+          <span style={{ fontSize: 10, letterSpacing: '0.15em', color: 'rgba(201,149,42,0.4)' }}>LOCKED</span>
+        </div>
       </FormField>
 
       <FormField label="Flying from" hint="City or airport you'll depart from">
