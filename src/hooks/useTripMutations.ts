@@ -111,6 +111,7 @@ export function useSubmitPreferences(tripId: string) {
           currency:             prefs.currency,
           activities:           prefs.activities,
           accommodation_types:  prefs.accommodationTypes,
+          origin_airports:      prefs.originAirports,
           special_requirements: prefs.specialRequirements || null,
           submitted_at:         new Date().toISOString(),
         })

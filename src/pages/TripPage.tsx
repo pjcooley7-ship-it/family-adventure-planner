@@ -23,8 +23,6 @@ export default function TripPage() {
   const enoughToMatch  = submitted.length >= 2
   const hasSubmitted   = !!myPreferences
 
-  const inviteLink = `${window.location.origin}/join/${trip?.code ?? ''}`
-
   function copyInvite() {
     const text = trip?.code ?? ''
     navigator.clipboard.writeText(text).then(() => {

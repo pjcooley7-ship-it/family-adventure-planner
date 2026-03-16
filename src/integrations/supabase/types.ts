@@ -26,6 +26,7 @@ export interface Database {
           name?: string
           status?: TripStatus
         }
+        Relationships: []
       }
 
       trip_members: {
@@ -46,6 +47,7 @@ export interface Database {
         Update: {
           display_name?: string
         }
+        Relationships: []
       }
 
       preferences: {
@@ -67,6 +69,7 @@ export interface Database {
           currency: string
           activities: string[]
           accommodation_types: string[]
+          origin_airports: string[]
           special_requirements: string | null
           submitted_at: string
           updated_at: string
@@ -89,6 +92,7 @@ export interface Database {
           currency?: string
           activities?: string[]
           accommodation_types?: string[]
+          origin_airports?: string[]
           special_requirements?: string | null
           submitted_at?: string
           updated_at?: string
@@ -108,9 +112,11 @@ export interface Database {
           currency?: string
           activities?: string[]
           accommodation_types?: string[]
+          origin_airports?: string[]
           special_requirements?: string | null
           updated_at?: string
         }
+        Relationships: []
       }
 
       destinations: {
@@ -137,6 +143,7 @@ export interface Database {
           created_at?: string
         }
         Update: never
+        Relationships: []
       }
 
       votes: {
@@ -155,6 +162,7 @@ export interface Database {
           created_at?: string
         }
         Update: never
+        Relationships: []
       }
     }
 
@@ -170,6 +178,7 @@ export interface Database {
           member_count: number
           submitted_count: number
         }
+        Relationships: []
       }
     }
 
@@ -183,6 +192,9 @@ export interface Database {
         Returns: boolean
       }
     }
+
+    Enums: Record<string, never>
+    CompositeTypes: Record<string, never>
   }
 }
 

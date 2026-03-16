@@ -1,7 +1,8 @@
 export interface TravelPreferences {
   // Step 1 — Who
   travelerName: string
-  originCity: string
+  originCity: string      // human-readable city label from geocoder
+  originAirports: string[] // selected IATA codes (up to 3)
   adults: number
   kids: number
 
@@ -53,6 +54,7 @@ export const CURRENCIES = ['USD', 'EUR', 'GBP', 'CHF', 'CAD', 'AUD', 'JPY'] as c
 export const DEFAULT_PREFERENCES: TravelPreferences = {
   travelerName: '',
   originCity: '',
+  originAirports: [],
   adults: 2,
   kids: 0,
   earliestDeparture: '',

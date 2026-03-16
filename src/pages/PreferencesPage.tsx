@@ -4,6 +4,7 @@ import { toast } from 'sonner'
 import { ArrowLeft, ArrowRight, Check } from 'lucide-react'
 import { StepIndicator } from '@/components/StepIndicator'
 import { FormField, TextInput, Counter, Toggle, Select } from '@/components/FormField'
+import { AirportPicker } from '@/components/AirportPicker'
 import { useSubmitPreferences } from '@/hooks/useTripMutations'
 import { useTripMembers, useMyPreferences } from '@/hooks/useTrip'
 import { useAuth } from '@/hooks/useAuth'
@@ -39,6 +40,7 @@ export default function PreferencesPage() {
       setPrefs({
         travelerName:        existingPrefs.traveler_name,
         originCity:          existingPrefs.origin_city,
+        originAirports:      existingPrefs.origin_airports,
         adults:              existingPrefs.adults,
         kids:                existingPrefs.kids,
         earliestDeparture:   existingPrefs.earliest_departure ?? '',
@@ -82,7 +84,8 @@ export default function PreferencesPage() {
 
   function validateStep(): boolean {
     if (step === 0) {
-      if (!prefs.originCity.trim()) { toast.error('Please enter your origin city'); return false }
+      if (!prefs.originCity.trim()) { toast.error('Please enter your city or town'); return false }
+      if (prefs.originAirports.length === 0) { toast.error('Please select at least one departure airport'); return false }
     }
     if (step === 1) {
       if (!prefs.earliestDeparture) { toast.error('Please set your earliest departure date'); return false }
@@ -187,7 +190,7 @@ export default function PreferencesPage() {
               transition: 'opacity 0.15s, transform 0.15s',
             }}
           >
-            {step === 0 && <StepWho prefs={prefs} update={update} displayName={displayName} />}
+            {step === 0 && <StepWho prefs={prefs} update={update} />}
             {step === 1 && <StepWhen prefs={prefs} update={update} />}
             {step === 2 && <StepBudget prefs={prefs} update={update} />}
             {step === 3 && <StepInterests prefs={prefs} toggleActivity={toggleActivity} toggleAccommodation={toggleAccommodation} />}
@@ -262,11 +265,9 @@ export default function PreferencesPage() {
 function StepWho({
   prefs,
   update,
-  displayName,
 }: {
   prefs: TravelPreferences
   update: <K extends keyof TravelPreferences>(k: K, v: TravelPreferences[K]) => void
-  displayName: string
 }) {
   return (
     <div className="flex flex-col gap-7">
@@ -289,11 +290,12 @@ function StepWho({
         </div>
       </FormField>
 
-      <FormField label="Flying from" hint="City or airport you'll depart from">
-        <TextInput
-          value={prefs.originCity}
-          onChange={e => update('originCity', e.target.value)}
-          placeholder="e.g. New York, JFK"
+      <FormField label="Flying from" hint="Enter your city or town — we'll find nearby airports">
+        <AirportPicker
+          cityLabel={prefs.originCity}
+          selectedIatas={prefs.originAirports}
+          onCityLabel={v => update('originCity', v)}
+          onSelectedIatas={v => update('originAirports', v)}
         />
       </FormField>
 
@@ -560,7 +562,7 @@ function StepNotes({
         <div className="flex flex-col gap-2">
           {[
             [`Traveler`, prefs.travelerName || '—'],
-            [`From`, prefs.originCity || '—'],
+            [`From`, prefs.originAirports.length > 0 ? prefs.originAirports.join(', ') : prefs.originCity || '—'],
             [`Party`, `${prefs.adults} adult${prefs.adults !== 1 ? 's' : ''}${prefs.kids > 0 ? `, ${prefs.kids} child${prefs.kids !== 1 ? 'ren' : ''}` : ''}`],
             [`Dates`, prefs.earliestDeparture ? `${prefs.earliestDeparture} → ${prefs.latestReturn}` : '—'],
             [`Budget`, prefs.budgetMin ? `${prefs.currency} ${prefs.budgetMin.toLocaleString()}–${prefs.budgetMax.toLocaleString()} pp` : '—'],
