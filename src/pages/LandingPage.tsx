@@ -1,24 +1,43 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { toast } from 'sonner'
 import { FlightPathMap } from '@/components/FlightPathMap'
+import { CreateTripModal } from '@/components/CreateTripModal'
+import { useAuth } from '@/hooks/useAuth'
+import { useJoinTrip } from '@/hooks/useTripMutations'
 import { ArrowRight, Globe, Users, Sparkles } from 'lucide-react'
 
 export default function LandingPage() {
   const navigate = useNavigate()
+  const { user } = useAuth()
+  const joinTrip = useJoinTrip()
   const [joinCode, setJoinCode] = useState('')
+  const [showCreateModal, setShowCreateModal] = useState(false)
 
   function handleCreate() {
-    // Will wire to Supabase — placeholder navigation for now
-    navigate('/trip/demo/preferences')
+    if (!user) { navigate('/auth'); return }
+    setShowCreateModal(true)
   }
 
   function handleJoin(e: React.FormEvent) {
     e.preventDefault()
-    if (joinCode.trim()) navigate(`/trip/${joinCode.trim().toLowerCase()}`)
+    if (!joinCode.trim()) return
+    if (!user) { navigate('/auth'); return }
+    // JoinTrip needs a display name — redirect to auth if not signed in,
+    // otherwise prompt via the join flow (handled in TripPage for now)
+    toast.info('Enter your name when prompted after joining.')
+    joinTrip.mutate({ code: joinCode.trim(), displayName: user.user_metadata?.display_name ?? 'Traveler' })
+  }
+
+  function handleSignOut() {
+    import('@/integrations/supabase/client').then(({ supabase }) => {
+      supabase.auth.signOut()
+    })
   }
 
   return (
     <div className="min-h-screen topo-curves" style={{ background: '#060d1f' }}>
+      {showCreateModal && <CreateTripModal onClose={() => setShowCreateModal(false)} />}
 
       {/* Nav */}
       <nav className="flex items-center justify-between px-8 py-6" style={{ borderBottom: '1px solid rgba(201,149,42,0.12)' }}>
@@ -29,29 +48,36 @@ export default function LandingPage() {
           WANDERLUST
         </span>
         <div className="flex items-center gap-6">
-          <button
-            onClick={() => {}}
-            className="text-sm tracking-widest opacity-60 hover:opacity-100 transition-opacity"
-            style={{ fontFamily: 'var(--font-body)', letterSpacing: '0.12em', color: '#f2eadb' }}
-          >
-            SIGN IN
-          </button>
+          {user ? (
+            <button
+              onClick={handleSignOut}
+              className="text-sm tracking-widest opacity-60 hover:opacity-100 transition-opacity"
+              style={{ fontFamily: 'var(--font-body)', letterSpacing: '0.12em', color: '#f2eadb', background: 'none', border: 'none', cursor: 'pointer' }}
+            >
+              SIGN OUT
+            </button>
+          ) : (
+            <button
+              onClick={() => navigate('/auth')}
+              className="text-sm tracking-widest opacity-60 hover:opacity-100 transition-opacity"
+              style={{ fontFamily: 'var(--font-body)', letterSpacing: '0.12em', color: '#f2eadb', background: 'none', border: 'none', cursor: 'pointer' }}
+            >
+              SIGN IN
+            </button>
+          )}
           <button
             onClick={handleCreate}
-            className="text-sm tracking-widest px-5 py-2 transition-all hover:bg-gold"
+            className="text-sm tracking-widest px-5 py-2 transition-all"
             style={{
               fontFamily: 'var(--font-body)',
               letterSpacing: '0.12em',
               color: '#c9952a',
               border: '1px solid rgba(201,149,42,0.4)',
               background: 'transparent',
+              cursor: 'pointer',
             }}
-            onMouseEnter={e => {
-              e.currentTarget.style.background = 'rgba(201,149,42,0.1)'
-            }}
-            onMouseLeave={e => {
-              e.currentTarget.style.background = 'transparent'
-            }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(201,149,42,0.1)' }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
           >
             CREATE TRIP
           </button>
