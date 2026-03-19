@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
-import { Copy, Check, ArrowRight, Clock, MapPin, Users } from 'lucide-react'
+import { Copy, Check, ArrowRight, Clock, MapPin, Users, Mail } from 'lucide-react'
 import { useTrip, useTripMembers, useTripPreferences, useMyPreferences } from '@/hooks/useTrip'
 import { useAuth } from '@/hooks/useAuth'
 
@@ -151,18 +151,34 @@ export default function TripPage() {
                 <p style={{ fontFamily: 'var(--font-display)', fontSize: 36, color: '#c9952a', letterSpacing: '0.3em', fontWeight: 400 }}>
                   {trip.code}
                 </p>
-                <button
-                  onClick={copyInvite}
-                  className="flex items-center gap-2 mx-auto mt-4"
-                  style={{
-                    fontFamily: 'var(--font-body)', fontSize: 11, letterSpacing: '0.15em',
-                    color: copied ? '#4ade80' : 'rgba(201,149,42,0.7)',
-                    background: 'none', border: 'none', cursor: 'pointer', padding: 0,
-                  }}
-                >
-                  {copied ? <Check size={13} /> : <Copy size={13} />}
-                  {copied ? 'COPIED' : 'COPY CODE'}
-                </button>
+                <div className="flex items-center justify-center gap-4 mt-4">
+                  <button
+                    onClick={copyInvite}
+                    className="flex items-center gap-2"
+                    style={{
+                      fontFamily: 'var(--font-body)', fontSize: 11, letterSpacing: '0.15em',
+                      color: copied ? '#4ade80' : 'rgba(201,149,42,0.7)',
+                      background: 'none', border: 'none', cursor: 'pointer', padding: 0,
+                    }}
+                  >
+                    {copied ? <Check size={13} /> : <Copy size={13} />}
+                    {copied ? 'COPIED' : 'COPY CODE'}
+                  </button>
+
+                  <span style={{ color: 'rgba(201,149,42,0.2)', fontSize: 12 }}>|</span>
+
+                  <a
+                    href={`mailto:?subject=Join my Wanderlust trip: ${trip.name}&body=Hey!%0A%0AI'm planning a trip and want you to join.%0A%0AUse this code to sign up and submit your travel preferences:%0A%0A  ${trip.code}%0A%0ASign up or sign in at: ${window.location.origin}%0A%0AThen click "Join a trip" and enter the code above.%0A%0ACan't wait to find our destination!`}
+                    className="flex items-center gap-2"
+                    style={{
+                      fontFamily: 'var(--font-body)', fontSize: 11, letterSpacing: '0.15em',
+                      color: 'rgba(201,149,42,0.7)', textDecoration: 'none',
+                    }}
+                  >
+                    <Mail size={13} />
+                    EMAIL INVITE
+                  </a>
+                </div>
               </div>
             </div>
 

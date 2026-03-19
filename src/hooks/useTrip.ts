@@ -1,6 +1,20 @@
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@/integrations/supabase/client'
 
+export function useMyTrips() {
+  return useQuery({
+    queryKey: ['my-trips'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('trips')
+        .select('*')
+        .order('created_at', { ascending: false })
+      if (error) throw error
+      return data
+    },
+  })
+}
+
 export function useTrip(tripId: string) {
   return useQuery({
     queryKey: ['trip', tripId],

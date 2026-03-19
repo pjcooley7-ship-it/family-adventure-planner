@@ -3,13 +3,16 @@ import { useNavigate } from 'react-router-dom'
 import { FlightPathMap } from '@/components/FlightPathMap'
 import { CreateTripModal } from '@/components/CreateTripModal'
 import { useAuth } from '@/hooks/useAuth'
+import { useMyTrips } from '@/hooks/useTrip'
 import { ArrowRight, Globe, Users, Sparkles } from 'lucide-react'
+import type { Trip } from '@/integrations/supabase/types'
 
 export default function LandingPage() {
   const navigate = useNavigate()
   const { user } = useAuth()
   const [joinCode, setJoinCode] = useState('')
   const [showCreateModal, setShowCreateModal] = useState(false)
+  const { data: myTrips = [] } = useMyTrips()
 
   function handleCreate() {
     if (!user) { navigate('/auth'); return }
@@ -179,6 +182,23 @@ export default function LandingPage() {
         <FlightPathMap />
       </section>
 
+      {/* My Trips */}
+      {user && myTrips.length > 0 && (
+        <section className="px-8 pb-4 max-w-5xl mx-auto w-full">
+          <p
+            className="text-xs tracking-widest mb-6"
+            style={{ color: 'rgba(201,149,42,0.5)', letterSpacing: '0.3em', fontFamily: 'var(--font-body)' }}
+          >
+            YOUR TRIPS
+          </p>
+          <div className="flex flex-col gap-3">
+            {myTrips.map(trip => (
+              <TripRow key={trip.id} trip={trip} onClick={() => navigate(`/trip/${trip.id}`)} />
+            ))}
+          </div>
+        </section>
+      )}
+
       {/* How it works */}
       <section className="px-8 py-16 max-w-5xl mx-auto">
         <p
@@ -244,6 +264,7 @@ export default function LandingPage() {
       </section>
 
       {/* Footer */}
+
       <footer
         className="px-8 py-8 text-center text-xs tracking-widest"
         style={{
@@ -256,5 +277,51 @@ export default function LandingPage() {
         WANDERLUST — FIND YOUR COMMON GROUND
       </footer>
     </div>
+  )
+}
+
+/* ─── Trip row ────────────────────────────────────────────────────────────── */
+
+const STATUS_LABEL: Record<string, string> = {
+  collecting: 'COLLECTING',
+  matching:   'MATCHING',
+  matched:    'MATCHED',
+}
+
+function TripRow({ trip, onClick }: { trip: Trip; onClick: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      className="flex items-center justify-between px-5 py-4 w-full text-left transition-all"
+      style={{
+        border: '1px solid rgba(201,149,42,0.15)',
+        background: 'rgba(13,24,48,0.5)',
+        cursor: 'pointer',
+      }}
+      onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(201,149,42,0.4)'; e.currentTarget.style.background = 'rgba(13,24,48,0.8)' }}
+      onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(201,149,42,0.15)'; e.currentTarget.style.background = 'rgba(13,24,48,0.5)' }}
+    >
+      <div>
+        <p style={{ fontFamily: 'var(--font-display)', fontSize: 20, fontWeight: 300, color: '#f2eadb' }}>
+          {trip.name}
+        </p>
+        <p style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: 'rgba(242,234,219,0.3)', marginTop: 3, letterSpacing: '0.05em' }}>
+          Code: {trip.code}
+        </p>
+      </div>
+      <span
+        style={{
+          fontFamily: 'var(--font-body)',
+          fontSize: 10,
+          letterSpacing: '0.15em',
+          color: trip.status === 'matched' ? 'rgba(74,222,128,0.7)' : 'rgba(201,149,42,0.55)',
+          border: `1px solid ${trip.status === 'matched' ? 'rgba(74,222,128,0.2)' : 'rgba(201,149,42,0.2)'}`,
+          padding: '3px 8px',
+          flexShrink: 0,
+        }}
+      >
+        {STATUS_LABEL[trip.status] ?? trip.status.toUpperCase()}
+      </span>
+    </button>
   )
 }
