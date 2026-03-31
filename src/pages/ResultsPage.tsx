@@ -361,18 +361,19 @@ function DestinationCard({
 
 /* ─── Generating screen ───────────────────────────────────────────────────── */
 
+const GENERATING_PHRASES = [
+  'Consulting the atlas…',
+  'Weighing the winds…',
+  'Charting common ground…',
+  'Scanning flight paths…',
+  'Balancing the scales…',
+]
+
 function GeneratingScreen({ tripName }: { tripName?: string }) {
-  const phrases = [
-    'Consulting the atlas…',
-    'Weighing the winds…',
-    'Charting common ground…',
-    'Scanning flight paths…',
-    'Balancing the scales…',
-  ]
   const [phraseIndex, setPhraseIndex] = useState(0)
 
   useEffect(() => {
-    const t = setInterval(() => setPhraseIndex(i => (i + 1) % phrases.length), 2200)
+    const t = setInterval(() => setPhraseIndex(i => (i + 1) % GENERATING_PHRASES.length), 2200)
     return () => clearInterval(t)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
@@ -419,13 +420,10 @@ function GeneratingScreen({ tripName }: { tripName?: string }) {
             animation: 'fade-in 0.5s ease',
           }}
         >
-          {phrases[phraseIndex]}
+          {GENERATING_PHRASES[phraseIndex]}
         </p>
       </div>
 
-      <style>{`
-        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-      `}</style>
     </div>
   )
 }

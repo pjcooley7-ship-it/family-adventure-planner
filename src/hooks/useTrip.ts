@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client'
 export function useMyTrips() {
   return useQuery({
     queryKey: ['my-trips'],
+    staleTime: 30_000, // don't refetch on every window focus
     queryFn: async () => {
       const { data, error } = await supabase
         .from('trips')

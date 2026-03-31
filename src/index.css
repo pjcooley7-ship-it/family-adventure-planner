@@ -131,6 +131,11 @@ body::after {
   50% { filter: drop-shadow(0 0 18px rgba(201, 149, 42, 0.9)); }
 }
 
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
 .animate-fade-up {
   opacity: 0;
   animation: fade-up 0.9s ease forwards;

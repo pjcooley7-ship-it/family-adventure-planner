@@ -49,16 +49,20 @@ export function useToggleVote(tripId: string) {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error('Not authenticated')
 
-      // Always remove any existing vote for this trip first
-      await supabase.from('votes').delete().eq('trip_id', tripId).eq('user_id', user.id)
-
-      // If not un-voting, insert the new vote
-      if (!isCurrentlyVoted) {
-        const { error } = await supabase.from('votes').insert({
-          trip_id:        tripId,
-          destination_id: destinationId,
-          user_id:        user.id,
-        })
+      if (isCurrentlyVoted) {
+        // Un-vote: remove the row
+        const { error } = await supabase
+          .from('votes')
+          .delete()
+          .eq('trip_id', tripId)
+          .eq('user_id', user.id)
+        if (error) throw error
+      } else {
+        // Vote / switch vote: upsert on (trip_id, user_id) — atomic, no race condition
+        const { error } = await supabase.from('votes').upsert(
+          { trip_id: tripId, destination_id: destinationId, user_id: user.id },
+          { onConflict: 'trip_id,user_id' },
+        )
         if (error) throw error
       }
     },
