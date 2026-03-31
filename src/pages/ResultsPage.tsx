@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import { ArrowLeft, RefreshCw } from 'lucide-react'
+import { useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/integrations/supabase/client'
 import { useTrip, useTripMembers } from '@/hooks/useTrip'
 import { useDestinations, useTripVotes, useToggleVote } from '@/hooks/useDestinations'
@@ -18,6 +19,7 @@ export default function ResultsPage() {
   const [status, setStatus] = useState<GeneratingStatus>('idle')
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
   const hasTriggered = useRef(false)
+  const queryClient = useQueryClient()
 
   const { data: trip } = useTrip(tripId!)
   const { data: members = [] } = useTripMembers(tripId!)
@@ -64,6 +66,7 @@ export default function ResultsPage() {
       return
     }
 
+    await queryClient.invalidateQueries({ queryKey: ['destinations', tripId] })
     setStatus('done')
   }
 
