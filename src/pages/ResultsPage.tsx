@@ -40,14 +40,27 @@ export default function ResultsPage() {
     setStatus('generating')
     setErrorMsg(null)
 
-    const { error } = await supabase.functions.invoke('find-destinations', {
+    const { data, error } = await supabase.functions.invoke('find-destinations', {
       body: { tripId },
     })
 
     if (error) {
+      // Try to extract the real error message from the function response body
+      let message = 'Something went wrong — please try again.'
+      try {
+        const body = await (error as { context?: Response }).context?.json?.()
+        if (body?.error) message = body.error
+      } catch { /* use default */ }
       setStatus('error')
-      setErrorMsg(error.message ?? 'Something went wrong — please try again.')
-      toast.error('Could not generate destinations')
+      setErrorMsg(message)
+      toast.error(message)
+      return
+    }
+
+    if (data?.error) {
+      setStatus('error')
+      setErrorMsg(data.error)
+      toast.error(data.error)
       return
     }
 
