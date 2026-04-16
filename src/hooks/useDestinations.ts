@@ -1,4 +1,5 @@
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { supabase } from '@/integrations/supabase/client'
 import { fromTable } from '@/lib/supabaseHelpers'
 
 export function useDestinations(tripId: string) {
@@ -33,11 +34,8 @@ export function useTripVotes(tripId: string) {
   })
 }
 
-// Toggle: if user already voted for this destination → remove vote.
-// If user voted for a different destination → switch vote.
-// If user hasn't voted → cast vote.
 export function useToggleVote(tripId: string) {
-  const queryClient = await import('@tanstack/react-query').then(m => m.useQueryClient)
+  const queryClient = useQueryClient()
 
   return useMutation({
     mutationFn: async ({
@@ -47,7 +45,6 @@ export function useToggleVote(tripId: string) {
       destinationId: string
       isCurrentlyVoted: boolean
     }) => {
-      const { supabase } = await import('@/integrations/supabase/client')
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error('Not authenticated')
 
