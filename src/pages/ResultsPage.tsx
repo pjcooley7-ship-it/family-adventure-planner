@@ -771,7 +771,7 @@ function FlightCard({ result, destinationIata }: { result: FlightResult; destina
     : null
 
   const bookingUrl = !hasError && destinationIata && result.origin_iata && result.outbound_date && result.return_date
-    ? `https://www.google.com/flights#flt=${result.origin_iata}.${destinationIata}.${result.outbound_date}*${destinationIata}.${result.origin_iata}.${result.return_date};tt=r`
+    ? `https://www.kayak.com/flights/${result.origin_iata}-${destinationIata}/${result.outbound_date}/${result.return_date}`
     : null
 
   return (
