@@ -70,8 +70,29 @@ Deno.serve(async (req) => {
       .eq('id', trip.decided_destination_id)
       .single()
     if (destErr) throw destErr
+
+    // ── If destination has no IATA code, store per-traveler error rows ────────
     if (!dest.destination_iata) {
-      throw new Error(`No airport code stored for ${dest.city} — re-run the AI search to get an updated result`)
+      const { data: prefs } = await admin
+        .from('preferences')
+        .select('user_id, traveler_name, origin_airports')
+        .eq('trip_id', tripId)
+      const errorRows = (prefs ?? []).map((p: { user_id: string; traveler_name: string; origin_airports: string[] }) => ({
+        trip_id:        tripId,
+        destination_id: dest.id,
+        user_id:        p.user_id,
+        traveler_name:  p.traveler_name,
+        origin_iata:    (Array.isArray(p.origin_airports) && p.origin_airports[0]) ?? 'N/A',
+        error_message:  `No airport code on file for ${dest.city} — search again to refresh`,
+        fetched_at:     new Date().toISOString(),
+      }))
+      const { data: upserted } = await admin
+        .from('flight_results')
+        .upsert(errorRows, { onConflict: 'trip_id,destination_id,user_id' })
+        .select()
+      return new Response(JSON.stringify({ results: upserted ?? errorRows }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
     }
 
     // ── Check cache — return early if all results are fresh ──────────────────
