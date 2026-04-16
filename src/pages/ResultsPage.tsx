@@ -771,7 +771,7 @@ function FlightCard({ result, destinationIata }: { result: FlightResult; destina
     : null
 
   const bookingUrl = !hasError && destinationIata && result.origin_iata && result.outbound_date && result.return_date
-    ? `https://www.google.com/flights#search;f=${result.origin_iata};t=${destinationIata};d=${result.outbound_date};r=${result.return_date};tt=o`
+    ? `https://www.google.com/flights#flt=${result.origin_iata}.${destinationIata}.${result.outbound_date}*${destinationIata}.${result.origin_iata}.${result.return_date};tt=r`
     : null
 
   return (
