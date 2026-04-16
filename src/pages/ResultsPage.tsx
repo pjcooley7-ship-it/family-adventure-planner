@@ -115,10 +115,11 @@ export default function ResultsPage() {
       return
     }
 
-    if (data?.error) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    if ((data as any)?.error) {
       setStatus('error')
-      setErrorMsg(data.error)
-      toast.error(data.error)
+      setErrorMsg((data as any).error)
+      toast.error((data as any).error)
       return
     }
 
@@ -205,7 +206,7 @@ export default function ResultsPage() {
 
   const voteCounts = new Map(destinations.map(d => [d.id, runVotes.filter(v => v.destination_id === d.id).length]))
   const maxVotesInRun = Math.max(0, ...voteCounts.values())
-  const maxVotes = Math.max(0, ...voteCounts.values())
+  const _maxVotes = Math.max(0, ...voteCounts.values())
 
   // ── Decided full page ─────────────────────────────────────────────────────
   if (isDecided && decidedDestination) {
@@ -271,7 +272,7 @@ export default function ResultsPage() {
             )}
             {decidedDestination.vibe_tags && decidedDestination.vibe_tags.length > 0 && (
               <div className="flex flex-wrap gap-1.5">
-                {decidedDestination.vibe_tags.map(tag => (
+                {decidedDestination.vibe_tags.map((tag: string) => (
                   <span key={tag} style={{
                     fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase',
                     padding: '3px 8px', border: '2px solid rgba(255,253,247,0.5)', color: 'rgba(255,253,247,0.9)',

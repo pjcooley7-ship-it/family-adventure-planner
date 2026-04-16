@@ -21,19 +21,5 @@ export interface FlightResult {
   fetched_at: string
 }
 
-export interface Destination {
-  id: string
-  trip_id: string
-  city: string
-  country: string
-  country_code: string | null
-  destination_iata: string | null
-  rank: number | null
-  run_number: number
-  score: number | null
-  ai_reasoning: string | null
-  vibe_tags: string[] | null
-  avg_budget_fit: number | null
-  highlights: string[] | null
-  created_at: string
-}
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type Destination = Record<string, any>
