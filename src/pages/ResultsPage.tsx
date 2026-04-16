@@ -206,7 +206,7 @@ export default function ResultsPage() {
 
   const voteCounts = new Map(destinations.map(d => [d.id, runVotes.filter(v => v.destination_id === d.id).length]))
   const maxVotesInRun = Math.max(0, ...voteCounts.values())
-  const _maxVotes = Math.max(0, ...voteCounts.values())
+  void Math.max(0, ...voteCounts.values()) // maxVotes — kept for future use
 
   // ── Decided full page ─────────────────────────────────────────────────────
   if (isDecided && decidedDestination) {
@@ -676,7 +676,7 @@ function DestinationCard({
         {/* Vibe tags */}
         {destination.vibe_tags && destination.vibe_tags.length > 0 && (
           <div className="flex flex-wrap gap-1.5" style={{ marginBottom: 16 }}>
-            {destination.vibe_tags.map(tag => (
+            {destination.vibe_tags.map((tag: string) => (
               <span
                 key={tag}
                 style={{
