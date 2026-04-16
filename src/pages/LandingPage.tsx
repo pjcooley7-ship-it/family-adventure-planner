@@ -14,7 +14,7 @@ export default function LandingPage() {
   const { user } = useAuth()
   const [joinCode, setJoinCode] = useState('')
   const [showCreateModal, setShowCreateModal] = useState(false)
-  const { data: myTrips = [] } = useMyTrips()
+  const { data: myTrips = [] } = useMyTrips(user?.id)
 
   function handleCreate() {
     if (!user) { navigate('/auth'); return }

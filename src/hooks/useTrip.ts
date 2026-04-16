@@ -2,10 +2,11 @@ import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@/integrations/supabase/client'
 import type { Trip, TripMember, Preference } from '@/integrations/supabase/types'
 
-export function useMyTrips() {
+export function useMyTrips(userId: string | undefined) {
   return useQuery({
-    queryKey: ['my-trips'],
+    queryKey: ['my-trips', userId],
     staleTime: 30_000,
+    enabled: !!userId,
     queryFn: async () => {
       const { data, error } = await supabase
         .from('trips')
