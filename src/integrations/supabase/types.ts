@@ -1,246 +1,430 @@
-export type Json = string | number | boolean | null | { [key: string]: Json } | Json[]
+export type Json =
+  | string
+  | number
+  | boolean
+  | null
+  | { [key: string]: Json | undefined }
+  | Json[]
 
-export type TripStatus = 'collecting' | 'matching' | 'matched' | 'decided'
-
-export interface Database {
+export type Database = {
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+  __InternalSupabase: {
+    PostgrestVersion: "14.1"
+  }
   public: {
     Tables: {
-      trips: {
+      profiles: {
         Row: {
-          id: string
-          name: string
-          code: string
-          created_by: string
-          status: TripStatus
-          decided_destination_id: string | null
+          avatar_url: string | null
           created_at: string
+          email: string | null
+          full_name: string | null
+          home_address: string | null
+          home_city: string | null
+          home_country: string | null
+          id: string
+          updated_at: string
+          user_id: string
         }
         Insert: {
-          id?: string
-          name: string
-          code?: string
-          created_by: string
-          status?: TripStatus
-          decided_destination_id?: string | null
+          avatar_url?: string | null
           created_at?: string
-        }
-        Update: {
-          name?: string
-          status?: TripStatus
-          decided_destination_id?: string | null
-        }
-        Relationships: []
-      }
-
-      trip_members: {
-        Row: {
-          id: string
-          trip_id: string
-          user_id: string
-          display_name: string
-          joined_at: string
-        }
-        Insert: {
+          email?: string | null
+          full_name?: string | null
+          home_address?: string | null
+          home_city?: string | null
+          home_country?: string | null
           id?: string
-          trip_id: string
+          updated_at?: string
           user_id: string
-          display_name: string
-          joined_at?: string
         }
         Update: {
-          display_name?: string
+          avatar_url?: string | null
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          home_address?: string | null
+          home_city?: string | null
+          home_country?: string | null
+          id?: string
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
-
-      preferences: {
+      traveler_info: {
         Row: {
+          activity_preferences: string[] | null
+          additional_notes: string | null
+          availability_end: string | null
+          availability_start: string | null
+          budget_currency: string | null
+          budget_max: number | null
+          budget_min: number | null
+          created_at: string
+          dietary_restrictions: string[] | null
+          home_address: string | null
+          home_city: string | null
+          home_country: string | null
           id: string
-          trip_id: string
-          user_id: string
-          traveler_name: string
-          origin_city: string
-          adults: number
-          kids: number
-          earliest_departure: string | null
-          latest_return: string | null
-          flexible_dates: boolean
-          trip_duration_min: number
-          trip_duration_max: number
-          budget_min: number
-          budget_max: number
-          currency: string
-          activities: string[]
-          accommodation_types: string[]
-          origin_airports: string[]
-          special_requirements: string | null
-          submitted_at: string
+          mobility_needs: string | null
+          places_to_avoid: string[] | null
+          preferred_destinations: string[] | null
+          submitted_at: string | null
+          travelers: Json
+          trip_member_id: string
           updated_at: string
         }
         Insert: {
+          activity_preferences?: string[] | null
+          additional_notes?: string | null
+          availability_end?: string | null
+          availability_start?: string | null
+          budget_currency?: string | null
+          budget_max?: number | null
+          budget_min?: number | null
+          created_at?: string
+          dietary_restrictions?: string[] | null
+          home_address?: string | null
+          home_city?: string | null
+          home_country?: string | null
           id?: string
-          trip_id: string
-          user_id: string
-          traveler_name: string
-          origin_city: string
-          adults?: number
-          kids?: number
-          earliest_departure?: string | null
-          latest_return?: string | null
-          flexible_dates?: boolean
-          trip_duration_min?: number
-          trip_duration_max?: number
-          budget_min?: number
-          budget_max?: number
-          currency?: string
-          activities?: string[]
-          accommodation_types?: string[]
-          origin_airports?: string[]
-          special_requirements?: string | null
-          submitted_at?: string
+          mobility_needs?: string | null
+          places_to_avoid?: string[] | null
+          preferred_destinations?: string[] | null
+          submitted_at?: string | null
+          travelers?: Json
+          trip_member_id: string
           updated_at?: string
         }
         Update: {
-          traveler_name?: string
-          origin_city?: string
-          adults?: number
-          kids?: number
-          earliest_departure?: string | null
-          latest_return?: string | null
-          flexible_dates?: boolean
-          trip_duration_min?: number
-          trip_duration_max?: number
-          budget_min?: number
-          budget_max?: number
-          currency?: string
-          activities?: string[]
-          accommodation_types?: string[]
-          origin_airports?: string[]
-          special_requirements?: string | null
+          activity_preferences?: string[] | null
+          additional_notes?: string | null
+          availability_end?: string | null
+          availability_start?: string | null
+          budget_currency?: string | null
+          budget_max?: number | null
+          budget_min?: number | null
+          created_at?: string
+          dietary_restrictions?: string[] | null
+          home_address?: string | null
+          home_city?: string | null
+          home_country?: string | null
+          id?: string
+          mobility_needs?: string | null
+          places_to_avoid?: string[] | null
+          preferred_destinations?: string[] | null
+          submitted_at?: string | null
+          travelers?: Json
+          trip_member_id?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "traveler_info_trip_member_id_fkey"
+            columns: ["trip_member_id"]
+            isOneToOne: true
+            referencedRelation: "trip_members"
+            referencedColumns: ["id"]
+          },
+        ]
       }
-
-      destinations: {
+      trip_members: {
         Row: {
+          email: string
           id: string
+          invited_at: string
+          responded_at: string | null
+          status: Database["public"]["Enums"]["member_status"]
           trip_id: string
-          city: string
-          country: string
-          country_code: string | null
-          destination_iata: string | null
-          ai_reasoning: string | null
-          match_score: number | null
-          rank: number | null
-          run_number: number
-          vibe_tags: string[]
-          best_months: string | null
-          flight_note: string | null
-          created_at: string
+          user_id: string | null
         }
         Insert: {
+          email: string
           id?: string
+          invited_at?: string
+          responded_at?: string | null
+          status?: Database["public"]["Enums"]["member_status"]
           trip_id: string
-          city: string
-          country: string
-          country_code?: string | null
-          destination_iata?: string | null
-          ai_reasoning?: string | null
-          match_score?: number | null
-          rank?: number | null
-          run_number?: number
-          vibe_tags?: string[]
-          best_months?: string | null
-          flight_note?: string | null
-          created_at?: string
+          user_id?: string | null
         }
-        Update: never
-        Relationships: []
+        Update: {
+          email?: string
+          id?: string
+          invited_at?: string
+          responded_at?: string | null
+          status?: Database["public"]["Enums"]["member_status"]
+          trip_id?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trip_members_trip_id_fkey"
+            columns: ["trip_id"]
+            isOneToOne: false
+            referencedRelation: "trips"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trip_members_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
-
-      votes: {
+      trip_recommendations: {
         Row: {
-          id: string
-          trip_id: string
-          destination_id: string
-          user_id: string
+          activity_suggestions: Json | null
+          cost_estimates: Json | null
           created_at: string
+          date_suggestions: Json | null
+          destination_suggestions: Json | null
+          generated_at: string
+          id: string
+          lodging_suggestions: Json | null
+          transportation_suggestions: Json | null
+          trip_id: string
         }
         Insert: {
-          id?: string
-          trip_id: string
-          destination_id: string
-          user_id: string
+          activity_suggestions?: Json | null
+          cost_estimates?: Json | null
           created_at?: string
-        }
-        Update: never
-        Relationships: []
-      }
-    }
-
-      flight_results: {
-        Row: {
-          id: string
+          date_suggestions?: Json | null
+          destination_suggestions?: Json | null
+          generated_at?: string
+          id?: string
+          lodging_suggestions?: Json | null
+          transportation_suggestions?: Json | null
           trip_id: string
-          destination_id: string
-          user_id: string
-          traveler_name: string
-          origin_iata: string
-          price: number | null
-          currency: string | null
-          airline: string | null
-          airline_logo: string | null
-          outbound_date: string | null
-          return_date: string | null
-          duration_minutes: number | null
-          stops: number | null
-          booking_token: string | null
-          error_message: string | null
-          fetched_at: string
         }
-        Insert: never
-        Update: never
-        Relationships: []
+        Update: {
+          activity_suggestions?: Json | null
+          cost_estimates?: Json | null
+          created_at?: string
+          date_suggestions?: Json | null
+          destination_suggestions?: Json | null
+          generated_at?: string
+          id?: string
+          lodging_suggestions?: Json | null
+          transportation_suggestions?: Json | null
+          trip_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trip_recommendations_trip_id_fkey"
+            columns: ["trip_id"]
+            isOneToOne: false
+            referencedRelation: "trips"
+            referencedColumns: ["id"]
+          },
+        ]
       }
-
-    Views: {
-      trip_summary: {
+      trips: {
         Row: {
+          created_at: string
+          description: string | null
           id: string
           name: string
-          code: string
-          status: TripStatus
-          created_by: string
-          created_at: string
-          member_count: number
-          submitted_count: number
+          organizer_id: string
+          status: Database["public"]["Enums"]["trip_status"]
+          target_end_date: string | null
+          target_start_date: string | null
+          updated_at: string
         }
-        Relationships: []
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          organizer_id: string
+          status?: Database["public"]["Enums"]["trip_status"]
+          target_end_date?: string | null
+          target_start_date?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          organizer_id?: string
+          status?: Database["public"]["Enums"]["trip_status"]
+          target_end_date?: string | null
+          target_start_date?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trips_organizer_id_fkey"
+            columns: ["organizer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
-
+    Views: {
+      [_ in never]: never
+    }
     Functions: {
-      generate_trip_code: {
-        Args: Record<string, never>
-        Returns: string
+      can_access_trip: {
+        Args: { _trip_id: string; _user_id: string }
+        Returns: boolean
       }
+      can_access_trip_member: {
+        Args: { _trip_member_id: string; _user_id: string }
+        Returns: boolean
+      }
+      can_manage_trip: {
+        Args: { _trip_id: string; _user_id: string }
+        Returns: boolean
+      }
+      get_profile_id: { Args: { _user_id: string }; Returns: string }
       is_trip_member: {
-        Args: { trip_uuid: string }
+        Args: { _trip_id: string; _user_id: string }
+        Returns: boolean
+      }
+      is_trip_organizer: {
+        Args: { _trip_id: string; _user_id: string }
         Returns: boolean
       }
     }
-
-    Enums: Record<string, never>
-    CompositeTypes: Record<string, never>
+    Enums: {
+      member_status: "pending" | "accepted" | "declined"
+      trip_status: "planning" | "confirmed" | "completed" | "cancelled"
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
   }
 }
 
-// ── Convenience row types ─────────────────────────────────────
-export type Trip          = Database['public']['Tables']['trips']['Row']
-export type FlightResult  = Database['public']['Tables']['flight_results']['Row']
-export type TripMember  = Database['public']['Tables']['trip_members']['Row']
-export type Preferences = Database['public']['Tables']['preferences']['Row']
-export type Destination = Database['public']['Tables']['destinations']['Row']
-export type Vote        = Database['public']['Tables']['votes']['Row']
-export type TripSummary = Database['public']['Views']['trip_summary']['Row']
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
+
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
+
+export type Tables<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+      Row: infer R
+    }
+    ? R
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])
+    ? (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
+        Row: infer R
+      }
+      ? R
+      : never
+    : never
+
+export type TablesInsert<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Insert: infer I
+    }
+    ? I
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Insert: infer I
+      }
+      ? I
+      : never
+    : never
+
+export type TablesUpdate<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Update: infer U
+    }
+    ? U
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Update: infer U
+      }
+      ? U
+      : never
+    : never
+
+export type Enums<
+  DefaultSchemaEnumNameOrOptions extends
+    | keyof DefaultSchema["Enums"]
+    | { schema: keyof DatabaseWithoutInternals },
+  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+    : never = never,
+> = DefaultSchemaEnumNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
+    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
+    : never
+
+export type CompositeTypes<
+  PublicCompositeTypeNameOrOptions extends
+    | keyof DefaultSchema["CompositeTypes"]
+    | { schema: keyof DatabaseWithoutInternals },
+  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    : never = never,
+> = PublicCompositeTypeNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
+    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+    : never
+
+export const Constants = {
+  public: {
+    Enums: {
+      member_status: ["pending", "accepted", "declined"],
+      trip_status: ["planning", "confirmed", "completed", "cancelled"],
+    },
+  },
+} as const

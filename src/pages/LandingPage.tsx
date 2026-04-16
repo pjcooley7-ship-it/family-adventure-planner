@@ -6,7 +6,8 @@ import { DocContainer } from '@/components/DocContainer'
 import { useAuth } from '@/hooks/useAuth'
 import { useMyTrips } from '@/hooks/useTrip'
 import { ArrowRight, Globe, Users, Sparkles } from 'lucide-react'
-import type { Trip } from '@/integrations/supabase/types'
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type Trip = any
 
 export default function LandingPage() {
   const navigate = useNavigate()

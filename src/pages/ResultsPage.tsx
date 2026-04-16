@@ -9,10 +9,9 @@ import { useDestinations, useTripVotes, useToggleVote } from '@/hooks/useDestina
 import { useLockDestination } from '@/hooks/useTripMutations'
 import { useFlightResults, useSearchFlights } from '@/hooks/useFlights'
 import { useAuth } from '@/hooks/useAuth'
-import type { FlightResult } from '@/integrations/supabase/types'
+import type { FlightResult, Destination } from '@/lib/customTypes'
 import { DocContainer } from '@/components/DocContainer'
 import { countryCodeToFlag } from '@/lib/utils'
-import type { Destination } from '@/integrations/supabase/types'
 
 type GeneratingStatus = 'idle' | 'generating' | 'done' | 'error'
 
@@ -116,10 +115,11 @@ export default function ResultsPage() {
       return
     }
 
-    if (data?.error) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    if ((data as any)?.error) {
       setStatus('error')
-      setErrorMsg(data.error)
-      toast.error(data.error)
+      setErrorMsg((data as any).error)
+      toast.error((data as any).error)
       return
     }
 
@@ -206,7 +206,7 @@ export default function ResultsPage() {
 
   const voteCounts = new Map(destinations.map(d => [d.id, runVotes.filter(v => v.destination_id === d.id).length]))
   const maxVotesInRun = Math.max(0, ...voteCounts.values())
-  const maxVotes = Math.max(0, ...voteCounts.values())
+  void Math.max(0, ...voteCounts.values()) // maxVotes — kept for future use
 
   // ── Decided full page ─────────────────────────────────────────────────────
   if (isDecided && decidedDestination) {
@@ -272,7 +272,7 @@ export default function ResultsPage() {
             )}
             {decidedDestination.vibe_tags && decidedDestination.vibe_tags.length > 0 && (
               <div className="flex flex-wrap gap-1.5">
-                {decidedDestination.vibe_tags.map(tag => (
+                {decidedDestination.vibe_tags.map((tag: string) => (
                   <span key={tag} style={{
                     fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase',
                     padding: '3px 8px', border: '2px solid rgba(255,253,247,0.5)', color: 'rgba(255,253,247,0.9)',
@@ -676,7 +676,7 @@ function DestinationCard({
         {/* Vibe tags */}
         {destination.vibe_tags && destination.vibe_tags.length > 0 && (
           <div className="flex flex-wrap gap-1.5" style={{ marginBottom: 16 }}>
-            {destination.vibe_tags.map(tag => (
+            {destination.vibe_tags.map((tag: string) => (
               <span
                 key={tag}
                 style={{

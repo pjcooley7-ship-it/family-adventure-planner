@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import { supabase } from '@/integrations/supabase/client'
+import { fromTable } from '@/lib/supabaseHelpers'
 import type { TravelPreferences } from '@/lib/types'
 
 // ── Create a new trip ─────────────────────────────────────────
@@ -15,23 +16,19 @@ export function useCreateTrip() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error('Not authenticated')
 
-      // Create the trip
-      const { data: trip, error: tripError } = await supabase
-        .from('trips')
+      const { data: trip, error: tripError } = await fromTable('trips')
         .insert({ name, created_by: user.id })
         .select()
         .single()
       if (tripError) throw tripError
 
-      // Add creator as first member
-      const { error: memberError } = await supabase
-        .from('trip_members')
+      const { error: memberError } = await fromTable('trip_members')
         .insert({ trip_id: trip.id, user_id: user.id, display_name: displayName })
       if (memberError) throw memberError
 
       return trip
     },
-    onSuccess: (trip) => {
+    onSuccess: (trip: { id: string; code: string; name: string }) => {
       queryClient.invalidateQueries({ queryKey: ['trip', trip.id] })
       toast.success(`Trip created — code: ${trip.code}`)
       navigate(`/trip/${trip.id}`)
@@ -53,17 +50,13 @@ export function useJoinTrip() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error('Not authenticated')
 
-      // Look up trip by code
-      const { data: trip, error: tripError } = await supabase
-        .from('trips')
+      const { data: trip, error: tripError } = await fromTable('trips')
         .select('*')
         .eq('code', code.toUpperCase())
         .single()
       if (tripError) throw new Error('Trip not found — check the code and try again')
 
-      // Check if already a member
-      const { data: existing } = await supabase
-        .from('trip_members')
+      const { data: existing } = await fromTable('trip_members')
         .select('id')
         .eq('trip_id', trip.id)
         .eq('user_id', user.id)
@@ -73,14 +66,14 @@ export function useJoinTrip() {
         return { trip, isNew: false }
       }
 
-      const { error: memberError } = await supabase
-        .from('trip_members')
+      const { error: memberError } = await fromTable('trip_members')
         .insert({ trip_id: trip.id, user_id: user.id, display_name: displayName })
       if (memberError) throw memberError
 
       return { trip, isNew: true }
     },
-    onSuccess: ({ trip, isNew }) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    onSuccess: ({ trip, isNew }: any) => {
       queryClient.invalidateQueries({ queryKey: ['trip', trip.id] })
       queryClient.invalidateQueries({ queryKey: ['trip-members', trip.id] })
       if (isNew) {
@@ -104,8 +97,7 @@ export function useLockDestination(tripId: string) {
 
   return useMutation({
     mutationFn: async (destinationId: string) => {
-      const { error } = await supabase
-        .from('trips')
+      const { error } = await fromTable('trips')
         .update({ status: 'decided', decided_destination_id: destinationId })
         .eq('id', tripId)
       if (error) throw error
@@ -131,8 +123,7 @@ export function useSubmitPreferences(tripId: string) {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error('Not authenticated')
 
-      const { error } = await supabase
-        .from('preferences')
+      const { error } = await fromTable('preferences')
         .upsert({
           trip_id:              tripId,
           user_id:              user.id,

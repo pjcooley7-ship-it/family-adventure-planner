@@ -1,18 +1,19 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/integrations/supabase/client'
+import { fromTable } from '@/lib/supabaseHelpers'
 
 export function useDestinations(tripId: string) {
   return useQuery({
     queryKey: ['destinations', tripId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('destinations')
+      const { data, error } = await fromTable('destinations')
         .select('*')
         .eq('trip_id', tripId)
         .order('run_number', { ascending: true })
         .order('rank', { ascending: true })
       if (error) throw error
-      return data
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      return data as any[]
     },
     enabled: !!tripId,
   })
@@ -22,20 +23,17 @@ export function useTripVotes(tripId: string) {
   return useQuery({
     queryKey: ['votes', tripId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('votes')
+      const { data, error } = await fromTable('votes')
         .select('*')
         .eq('trip_id', tripId)
       if (error) throw error
-      return data
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      return data as any[]
     },
     enabled: !!tripId,
   })
 }
 
-// Toggle: if user already voted for this destination → remove vote.
-// If user voted for a different destination → switch vote.
-// If user hasn't voted → cast vote.
 export function useToggleVote(tripId: string) {
   const queryClient = useQueryClient()
 
@@ -51,16 +49,13 @@ export function useToggleVote(tripId: string) {
       if (!user) throw new Error('Not authenticated')
 
       if (isCurrentlyVoted) {
-        // Un-vote: remove the row
-        const { error } = await supabase
-          .from('votes')
+        const { error } = await fromTable('votes')
           .delete()
           .eq('trip_id', tripId)
           .eq('user_id', user.id)
         if (error) throw error
       } else {
-        // Vote / switch vote: upsert on (trip_id, user_id) — atomic, no race condition
-        const { error } = await supabase.from('votes').upsert(
+        const { error } = await fromTable('votes').upsert(
           { trip_id: tripId, destination_id: destinationId, user_id: user.id },
           { onConflict: 'trip_id,user_id' },
         )
