@@ -1,9 +1,10 @@
 import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
-import { Copy, Check, ArrowRight, Clock, MapPin, Users, Mail } from 'lucide-react'
+import { Copy, Check, ArrowRight, Clock, MapPin, Mail } from 'lucide-react'
 import { useTrip, useTripMembers, useTripPreferences, useMyPreferences } from '@/hooks/useTrip'
 import { useAuth } from '@/hooks/useAuth'
+import { DocContainer } from '@/components/DocContainer'
 
 export default function TripPage() {
   const { tripId } = useParams()
@@ -17,15 +18,14 @@ export default function TripPage() {
   const { data: myPreferences } = useMyPreferences(tripId!, user?.id)
 
   const submittedUserIds = new Set(allPreferences.map(p => p.user_id))
-  const submitted = members.filter(m => submittedUserIds.has(m.user_id))
-  const pending   = members.filter(m => !submittedUserIds.has(m.user_id))
-  const allSubmitted   = members.length > 0 && pending.length === 0
-  const enoughToMatch  = submitted.length >= 2
-  const hasSubmitted   = !!myPreferences
+  const submitted    = members.filter(m => submittedUserIds.has(m.user_id))
+  const pending      = members.filter(m => !submittedUserIds.has(m.user_id))
+  const allSubmitted  = members.length > 0 && pending.length === 0
+  const enoughToMatch = submitted.length >= 2
+  const hasSubmitted  = !!myPreferences
 
   function copyInvite() {
-    const text = trip?.code ?? ''
-    navigator.clipboard.writeText(text).then(() => {
+    navigator.clipboard.writeText(trip?.code ?? '').then(() => {
       setCopied(true)
       toast.success('Trip code copied')
       setTimeout(() => setCopied(false), 2000)
@@ -34,43 +34,62 @@ export default function TripPage() {
 
   if (tripLoading) {
     return (
-      <div className="min-h-screen topo-curves flex items-center justify-center" style={{ background: '#060d1f' }}>
-        <p className="font-display text-2xl italic animate-pulse" style={{ fontFamily: 'var(--font-display)', color: '#c9952a' }}>
-          charting your course...
-        </p>
-      </div>
+      <DocContainer>
+        <div style={{ padding: '80px 32px', textAlign: 'center' }}>
+          <p style={{ fontFamily: 'var(--font-mono)', fontSize: 11, letterSpacing: '0.15em', color: 'var(--color-ink-3)' }}>
+            LOADING…
+          </p>
+        </div>
+      </DocContainer>
     )
   }
 
   if (!trip) {
     return (
-      <div className="min-h-screen topo-curves flex flex-col items-center justify-center gap-4" style={{ background: '#060d1f' }}>
-        <p style={{ fontFamily: 'var(--font-display)', fontSize: '2rem', color: '#f2eadb' }}>Trip not found</p>
-        <button onClick={() => navigate('/')} style={{ fontFamily: 'var(--font-body)', color: '#c9952a', background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, letterSpacing: '0.15em' }}>
-          ← BACK HOME
-        </button>
-      </div>
+      <DocContainer>
+        <div style={{ padding: '80px 32px', textAlign: 'center' }}>
+          <p style={{ fontFamily: 'var(--font-display)', fontSize: '1.6rem', fontWeight: 600, color: 'var(--color-ink)', marginBottom: 16 }}>
+            Trip not found
+          </p>
+          <button
+            onClick={() => navigate('/')}
+            style={{
+              fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase',
+              color: 'var(--color-ink-2)', background: 'none', border: 'none', cursor: 'pointer',
+            }}
+          >
+            ← BACK HOME
+          </button>
+        </div>
+      </DocContainer>
     )
   }
 
   return (
-    <div className="min-h-screen topo-curves" style={{ background: '#060d1f' }}>
+    <DocContainer>
 
       {/* Nav */}
-      <nav className="flex items-center justify-between px-8 py-5" style={{ borderBottom: '1px solid rgba(201,149,42,0.1)' }}>
+      <nav style={{
+        padding: '20px 32px',
+        borderBottom: '2.5px solid var(--color-ink)',
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+      }}>
         <button
           onClick={() => navigate('/')}
-          style={{ fontFamily: 'var(--font-display)', fontSize: 18, letterSpacing: '0.2em', color: '#c9952a', background: 'none', border: 'none', cursor: 'pointer', fontStyle: 'italic' }}
+          style={{
+            fontFamily: 'var(--font-display)', fontSize: 18, fontWeight: 600,
+            color: 'var(--color-ink)', background: 'none', border: 'none', cursor: 'pointer',
+            letterSpacing: '-0.3px',
+          }}
         >
           Wanderlust
         </button>
-        <div className="flex items-center gap-2">
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <div style={{
-            width: 8, height: 8, borderRadius: '50%',
-            background: allSubmitted ? '#4ade80' : enoughToMatch ? '#c9952a' : 'rgba(201,149,42,0.3)',
-            animation: !allSubmitted ? 'pulse-dot 2s ease-in-out infinite' : 'none',
+            width: 7, height: 7,
+            background: allSubmitted ? 'var(--color-green)' : enoughToMatch ? 'var(--color-amber)' : 'var(--color-ink-3)',
           }} />
-          <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, letterSpacing: '0.2em', color: allSubmitted ? 'rgba(74,222,128,0.8)' : 'rgba(201,149,42,0.7)' }}>
+          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '0.12em', color: 'var(--color-ink-2)' }}>
             {members.length === 0
               ? 'NO MEMBERS YET'
               : allSubmitted
@@ -80,164 +99,176 @@ export default function TripPage() {
         </div>
       </nav>
 
-      <div className="max-w-6xl mx-auto px-6 py-10">
+      {/* Trip header */}
+      <section style={{ padding: '32px 32px 24px', borderBottom: '2.5px solid var(--color-ink)' }}>
+        <p className="brut-label animate-fade-up" style={{ marginBottom: 8 }}>
+          TRIP · {trip.code}
+        </p>
+        <h1
+          className="animate-fade-up delay-100"
+          style={{
+            fontFamily: 'var(--font-display)',
+            fontSize: 'clamp(1.8rem, 5vw, 2.6rem)',
+            fontWeight: 600,
+            color: 'var(--color-ink)',
+            lineHeight: 1.1,
+            letterSpacing: '-0.5px',
+            marginBottom: 6,
+          }}
+        >
+          {trip.name}
+        </h1>
+        <p style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--color-ink-3)', letterSpacing: '0.06em' }}>
+          Created {new Date(trip.created_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+        </p>
+      </section>
 
-        {/* Trip header */}
-        <div className="mb-10 animate-fade-up">
-          <p style={{ fontFamily: 'var(--font-body)', fontSize: 10, letterSpacing: '0.3em', color: 'rgba(201,149,42,0.45)', marginBottom: 8 }}>
-            TRIP · {trip.code}
+      {/* Your action */}
+      <section style={{ padding: '24px 32px', borderBottom: '2.5px solid var(--color-ink)' }}>
+        <ActionCard tripId={tripId!} navigate={navigate} hasSubmitted={hasSubmitted} />
+      </section>
+
+      {/* Travel party */}
+      <section style={{ padding: '24px 32px', borderBottom: '2.5px solid var(--color-ink)' }}>
+        <p className="brut-label" style={{ marginBottom: 14 }}>TRAVEL PARTY</p>
+        {members.length === 0 ? (
+          <p style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: 'var(--color-ink-2)' }}>
+            No one else has joined yet — share the invite code below.
           </p>
-          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(2rem, 5vw, 3.5rem)', fontWeight: 300, color: '#f2eadb', lineHeight: 1.1 }}>
-            {trip.name}
-          </h1>
-          <p style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: 'rgba(242,234,219,0.35)', marginTop: 8 }}>
-            Created {new Date(trip.created_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
-          {/* Left — Party */}
-          <div className="lg:col-span-2 flex flex-col gap-6">
-            <div className="animate-fade-up delay-300">
-              <p style={{ fontFamily: 'var(--font-body)', fontSize: 10, letterSpacing: '0.25em', color: 'rgba(201,149,42,0.5)', marginBottom: 12 }}>
-                TRAVEL PARTY
-              </p>
-              {members.length === 0 ? (
-                <div style={{ border: '1px solid rgba(201,149,42,0.1)', padding: '32px', textAlign: 'center' }}>
-                  <p style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: 'rgba(242,234,219,0.3)' }}>
-                    No one else has joined yet — share the invite code below.
-                  </p>
-                </div>
-              ) : (
-                <div className="flex flex-col gap-3">
-                  {members.map(member => {
-                    const pref = allPreferences.find(p => p.user_id === member.user_id)
-                    const isYou = member.user_id === user?.id
-                    return (
-                      <MemberCard
-                        key={member.id}
-                        name={member.display_name}
-                        originCity={pref?.origin_city ?? null}
-                        submitted={submittedUserIds.has(member.user_id)}
-                        isYou={isYou}
-                      />
-                    )
-                  })}
-                </div>
-              )}
-            </div>
+        ) : (
+          <div className="flex flex-col gap-2">
+            {members.map(member => {
+              const pref = allPreferences.find(p => p.user_id === member.user_id)
+              return (
+                <MemberCard
+                  key={member.id}
+                  name={member.display_name}
+                  originCity={pref?.origin_city ?? null}
+                  submitted={submittedUserIds.has(member.user_id)}
+                  isYou={member.user_id === user?.id}
+                />
+              )
+            })}
           </div>
+        )}
+      </section>
 
-          {/* Right — Actions */}
-          <div className="flex flex-col gap-5 animate-fade-up delay-200">
+      {/* Invite */}
+      <section style={{ padding: '24px 32px', borderBottom: '2.5px solid var(--color-ink)' }}>
+        <p className="brut-label" style={{ marginBottom: 12 }}>INVITE YOUR PARTY</p>
+        <p style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: 'var(--color-ink-2)', marginBottom: 16, lineHeight: 1.6 }}>
+          Share this code with everyone joining the trip.
+        </p>
 
-            {/* Your status */}
-            <ActionCard tripId={tripId!} navigate={navigate} hasSubmitted={hasSubmitted} />
+        <div style={{
+          border: '2.5px solid var(--color-ink)',
+          padding: '20px',
+          background: 'var(--color-surface-2)',
+          textAlign: 'center',
+        }}>
+          <p className="brut-label" style={{ marginBottom: 8 }}>TRIP CODE</p>
+          <p style={{
+            fontFamily: 'var(--font-mono)',
+            fontSize: 40,
+            fontWeight: 700,
+            color: 'var(--color-ink)',
+            letterSpacing: '0.2em',
+            lineHeight: 1,
+            marginBottom: 16,
+          }}>
+            {trip.code}
+          </p>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 20 }}>
+            <button
+              onClick={copyInvite}
+              className="flex items-center gap-2"
+              style={{
+                fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase',
+                color: copied ? 'var(--color-green)' : 'var(--color-ink-2)',
+                background: 'none', border: 'none', cursor: 'pointer', padding: 0,
+              }}
+            >
+              {copied ? <Check size={12} /> : <Copy size={12} />}
+              {copied ? 'COPIED' : 'COPY CODE'}
+            </button>
+            <span style={{ color: 'var(--color-ink-3)' }}>|</span>
+            <a
+              href={`mailto:?subject=Join my Wanderlust trip: ${trip.name}&body=Hey!%0A%0AI'm planning a trip and want you to join.%0A%0AUse this code: ${trip.code}%0A%0ASign in at ${window.location.origin} and click "Join a trip".`}
+              className="flex items-center gap-2"
+              style={{
+                fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase',
+                color: 'var(--color-ink-2)', textDecoration: 'none',
+              }}
+            >
+              <Mail size={12} />
+              EMAIL INVITE
+            </a>
+          </div>
+        </div>
+      </section>
 
-            {/* Invite */}
-            <div style={{ border: '1px solid rgba(201,149,42,0.18)', background: 'rgba(13,24,48,0.6)', padding: 24 }}>
-              <p style={{ fontFamily: 'var(--font-body)', fontSize: 10, letterSpacing: '0.25em', color: 'rgba(201,149,42,0.55)', marginBottom: 14 }}>
-                INVITE YOUR PARTY
-              </p>
-              <p style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: 'rgba(242,234,219,0.45)', marginBottom: 16, lineHeight: 1.6 }}>
-                Share your trip code with everyone joining.
-              </p>
-
-              <div className="mt-4 text-center" style={{ border: '1px solid rgba(201,149,42,0.2)', padding: '20px 16px' }}>
-                <p style={{ fontFamily: 'var(--font-body)', fontSize: 10, color: 'rgba(242,234,219,0.25)', letterSpacing: '0.2em', marginBottom: 10 }}>
-                  TRIP CODE
-                </p>
-                <p style={{ fontFamily: 'var(--font-display)', fontSize: 36, color: '#c9952a', letterSpacing: '0.3em', fontWeight: 400 }}>
-                  {trip.code}
-                </p>
-                <div className="flex items-center justify-center gap-4 mt-4">
-                  <button
-                    onClick={copyInvite}
-                    className="flex items-center gap-2"
-                    style={{
-                      fontFamily: 'var(--font-body)', fontSize: 11, letterSpacing: '0.15em',
-                      color: copied ? '#4ade80' : 'rgba(201,149,42,0.7)',
-                      background: 'none', border: 'none', cursor: 'pointer', padding: 0,
-                    }}
-                  >
-                    {copied ? <Check size={13} /> : <Copy size={13} />}
-                    {copied ? 'COPIED' : 'COPY CODE'}
-                  </button>
-
-                  <span style={{ color: 'rgba(201,149,42,0.2)', fontSize: 12 }}>|</span>
-
-                  <a
-                    href={`mailto:?subject=Join my Wanderlust trip: ${trip.name}&body=Hey!%0A%0AI'm planning a trip and want you to join.%0A%0AUse this code to sign up and submit your travel preferences:%0A%0A  ${trip.code}%0A%0ASign up or sign in at: ${window.location.origin}%0A%0AThen click "Join a trip" and enter the code above.%0A%0ACan't wait to find our destination!`}
-                    className="flex items-center gap-2"
-                    style={{
-                      fontFamily: 'var(--font-body)', fontSize: 11, letterSpacing: '0.15em',
-                      color: 'rgba(201,149,42,0.7)', textDecoration: 'none',
-                    }}
-                  >
-                    <Mail size={13} />
-                    EMAIL INVITE
-                  </a>
-                </div>
-              </div>
-            </div>
-
-            {/* Progress */}
-            {members.length > 0 && (
-              <div style={{ border: '1px solid rgba(201,149,42,0.18)', background: 'rgba(13,24,48,0.6)', padding: 24 }}>
-                <p style={{ fontFamily: 'var(--font-body)', fontSize: 10, letterSpacing: '0.25em', color: 'rgba(201,149,42,0.55)', marginBottom: 16 }}>
-                  SUBMISSION PROGRESS
-                </p>
-                <div style={{ height: 4, background: 'rgba(201,149,42,0.1)', borderRadius: 2, marginBottom: 8 }}>
-                  <div style={{
-                    height: '100%',
-                    width: `${(submitted.length / members.length) * 100}%`,
-                    background: 'linear-gradient(90deg, #c9952a, #e8b84b)',
-                    borderRadius: 2, transition: 'width 0.6s ease',
-                  }} />
-                </div>
-                <p style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: 'rgba(242,234,219,0.4)' }}>
-                  {submitted.length} of {members.length} submitted
-                </p>
-                {pending.length > 0 && (
-                  <div className="mt-4 flex flex-col gap-2">
-                    <p style={{ fontFamily: 'var(--font-body)', fontSize: 10, letterSpacing: '0.15em', color: 'rgba(242,234,219,0.25)', marginBottom: 4 }}>
-                      WAITING ON
-                    </p>
-                    {pending.map(m => (
-                      <div key={m.id} className="flex items-center gap-2">
-                        <Clock size={11} style={{ color: 'rgba(201,149,42,0.4)', flexShrink: 0 }} />
-                        <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: 'rgba(242,234,219,0.4)' }}>
-                          {m.display_name}
-                        </span>
-                      </div>
-                    ))}
+      {/* Submission progress */}
+      {members.length > 0 && (
+        <section style={{ padding: '24px 32px', borderBottom: '2.5px solid var(--color-ink)' }}>
+          <p className="brut-label" style={{ marginBottom: 12 }}>SUBMISSION PROGRESS</p>
+          <div style={{ height: 5, background: 'var(--border-soft)', marginBottom: 8 }}>
+            <div style={{
+              height: '100%',
+              width: `${(submitted.length / members.length) * 100}%`,
+              background: 'var(--color-green)',
+              transition: 'width 0.6s ease',
+            }} />
+          </div>
+          <p style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--color-ink-2)', letterSpacing: '0.06em' }}>
+            {submitted.length} of {members.length} submitted
+          </p>
+          {pending.length > 0 && (
+            <div style={{ marginTop: 12 }}>
+              <p className="brut-label" style={{ marginBottom: 8 }}>WAITING ON</p>
+              <div className="flex flex-col gap-1.5">
+                {pending.map(m => (
+                  <div key={m.id} className="flex items-center gap-2">
+                    <Clock size={10} style={{ color: 'var(--color-ink-3)', flexShrink: 0 }} />
+                    <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: 'var(--color-ink-2)' }}>
+                      {m.display_name}
+                    </span>
                   </div>
-                )}
+                ))}
               </div>
-            )}
+            </div>
+          )}
+        </section>
+      )}
 
-            {/* Find destinations CTA */}
-            {enoughToMatch && (
-              <button
-                onClick={() => navigate(`/trip/${tripId}/results`)}
-                className="flex items-center justify-center gap-3"
-                style={{
-                  fontFamily: 'var(--font-body)', fontSize: 13, letterSpacing: '0.15em',
-                  color: '#060d1f', background: '#c9952a', border: 'none', cursor: 'pointer',
-                  padding: '18px 24px', transition: 'background 0.2s', width: '100%',
-                }}
-                onMouseEnter={e => { e.currentTarget.style.background = '#e8b84b' }}
-                onMouseLeave={e => { e.currentTarget.style.background = '#c9952a' }}
-              >
-                {allSubmitted ? 'FIND OUR DESTINATION' : 'FIND DESTINATIONS SO FAR'}
-                <ArrowRight size={15} />
-              </button>
-            )}
-          </div>
-        </div>
-      </div>
-    </div>
+      {/* Find destinations CTA */}
+      {enoughToMatch && (
+        <section style={{ padding: '24px 32px', borderBottom: '2.5px solid var(--color-ink)' }}>
+          <button
+            onClick={() => navigate(`/trip/${tripId}/results`)}
+            className="brut-btn-primary"
+            style={{ width: '100%', justifyContent: 'center', fontSize: 13 }}
+          >
+            {allSubmitted ? 'FIND OUR DESTINATION' : 'FIND DESTINATIONS SO FAR'}
+            <ArrowRight size={14} />
+          </button>
+        </section>
+      )}
+
+      {/* Footer */}
+      <footer style={{
+        borderTop: '2.5px solid var(--color-ink)',
+        padding: '16px 32px',
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+      }}>
+        <span style={{ fontFamily: 'var(--font-display)', fontSize: 14, fontWeight: 600, color: 'var(--color-ink)' }}>
+          Wanderlust
+        </span>
+        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '0.1em', color: 'var(--color-ink-3)', textTransform: 'uppercase' }}>
+          Find your common ground
+        </span>
+      </footer>
+
+    </DocContainer>
   )
 }
 
@@ -251,57 +282,53 @@ function MemberCard({ name, originCity, submitted, isYou }: {
 }) {
   return (
     <div
-      className="flex items-center justify-between px-5 py-4"
+      className="flex items-center justify-between px-4 py-3"
       style={{
-        border: `1px solid ${submitted ? 'rgba(201,149,42,0.25)' : 'rgba(201,149,42,0.1)'}`,
-        background: submitted ? 'rgba(201,149,42,0.04)' : 'rgba(13,24,48,0.4)',
+        border: '2.5px solid var(--color-ink)',
+        background: 'var(--color-bg)',
       }}
     >
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-3">
         <div style={{
-          width: 36, height: 36, borderRadius: '50%',
-          border: `1px solid ${submitted ? 'rgba(201,149,42,0.4)' : 'rgba(201,149,42,0.15)'}`,
+          width: 34, height: 34, flexShrink: 0,
+          border: '2.5px solid var(--color-ink)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          background: submitted ? 'rgba(201,149,42,0.1)' : 'transparent',
-          fontFamily: 'var(--font-display)', fontSize: 16,
-          color: submitted ? '#c9952a' : 'rgba(201,149,42,0.3)',
+          background: submitted ? 'var(--color-ink)' : 'transparent',
+          fontFamily: 'var(--font-display)',
+          fontWeight: 600,
+          fontSize: 14,
+          color: submitted ? 'var(--color-bg)' : 'var(--color-ink-3)',
         }}>
           {name[0].toUpperCase()}
         </div>
         <div>
           <div className="flex items-center gap-2">
-            <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: submitted ? '#f2eadb' : 'rgba(242,234,219,0.45)' }}>
+            <span style={{ fontFamily: 'var(--font-body)', fontWeight: 500, fontSize: 14, color: 'var(--color-ink)' }}>
               {name}
             </span>
             {isYou && (
-              <span style={{ fontFamily: 'var(--font-body)', fontSize: 9, letterSpacing: '0.15em', color: 'rgba(201,149,42,0.6)', border: '1px solid rgba(201,149,42,0.25)', padding: '1px 6px' }}>
+              <span style={{
+                fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: '0.1em',
+                color: 'var(--color-ink-3)', border: '1.5px solid var(--color-ink-3)', padding: '1px 5px',
+              }}>
                 YOU
               </span>
             )}
           </div>
           {originCity && (
-            <div className="flex items-center gap-1 mt-1">
-              <MapPin size={10} style={{ color: 'rgba(201,149,42,0.5)' }} />
-              <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: 'rgba(242,234,219,0.35)' }}>
+            <div className="flex items-center gap-1 mt-0.5">
+              <MapPin size={9} style={{ color: 'var(--color-ink-3)' }} />
+              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--color-ink-3)' }}>
                 {originCity}
               </span>
             </div>
           )}
         </div>
       </div>
-      <div className="flex items-center gap-2">
-        {submitted ? (
-          <>
-            <Check size={12} style={{ color: '#c9952a' }} />
-            <span style={{ fontFamily: 'var(--font-body)', fontSize: 10, letterSpacing: '0.15em', color: 'rgba(201,149,42,0.7)' }}>SUBMITTED</span>
-          </>
-        ) : (
-          <>
-            <Clock size={12} style={{ color: 'rgba(242,234,219,0.2)' }} />
-            <span style={{ fontFamily: 'var(--font-body)', fontSize: 10, letterSpacing: '0.15em', color: 'rgba(242,234,219,0.2)' }}>PENDING</span>
-          </>
-        )}
-      </div>
+
+      <span className={submitted ? 'badge-positive' : 'badge-neutral'}>
+        {submitted ? 'SUBMITTED' : 'PENDING'}
+      </span>
     </div>
   )
 }
@@ -315,19 +342,24 @@ function ActionCard({ tripId, navigate, hasSubmitted }: {
 }) {
   if (hasSubmitted) {
     return (
-      <div style={{ border: '1px solid rgba(74,222,128,0.2)', background: 'rgba(74,222,128,0.04)', padding: 24 }}>
-        <div className="flex items-center gap-3 mb-3">
-          <Check size={16} style={{ color: '#4ade80' }} />
-          <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, letterSpacing: '0.2em', color: 'rgba(74,222,128,0.8)' }}>
-            YOUR PREFERENCES SAVED
+      <div style={{ border: '2.5px solid var(--color-green)', padding: '20px 20px 16px' }}>
+        <div className="flex items-center gap-2 mb-2">
+          <Check size={14} style={{ color: 'var(--color-green)' }} />
+          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '0.12em', fontWeight: 700, color: 'var(--color-green)' }}>
+            PREFERENCES SAVED
           </span>
         </div>
-        <p style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: 'rgba(242,234,219,0.4)', lineHeight: 1.6 }}>
+        <p style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: 'var(--color-ink-2)', lineHeight: 1.6 }}>
           Waiting for the rest of your party to submit.
         </p>
         <button
           onClick={() => navigate(`/trip/${tripId}/preferences`)}
-          style={{ marginTop: 14, fontFamily: 'var(--font-body)', fontSize: 11, letterSpacing: '0.15em', color: 'rgba(242,234,219,0.4)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, textDecoration: 'underline', textDecorationColor: 'rgba(242,234,219,0.2)' }}
+          style={{
+            marginTop: 12,
+            fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase',
+            color: 'var(--color-ink-2)', background: 'none', border: 'none', cursor: 'pointer',
+            padding: 0, textDecoration: 'underline', textDecorationThickness: '1.5px',
+          }}
         >
           EDIT PREFERENCES
         </button>
@@ -336,26 +368,21 @@ function ActionCard({ tripId, navigate, hasSubmitted }: {
   }
 
   return (
-    <div style={{ border: '1px solid rgba(201,149,42,0.35)', background: 'rgba(201,149,42,0.05)', padding: 24 }}>
-      <div className="flex items-center gap-2 mb-3">
-        <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#c9952a', animation: 'pulse-dot 2s ease-in-out infinite' }} />
-        <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, letterSpacing: '0.2em', color: 'rgba(201,149,42,0.8)' }}>ACTION NEEDED</span>
+    <div style={{ border: '2.5px solid var(--color-amber)', padding: '20px 20px 16px' }}>
+      <div className="flex items-center gap-2 mb-2">
+        <div style={{ width: 7, height: 7, background: 'var(--color-amber)' }} />
+        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '0.12em', fontWeight: 700, color: 'var(--color-amber)' }}>
+          ACTION NEEDED
+        </span>
       </div>
-      <p style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: 'rgba(242,234,219,0.5)', lineHeight: 1.6, marginBottom: 18 }}>
+      <p style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: 'var(--color-ink-2)', lineHeight: 1.6, marginBottom: 14 }}>
         You haven't submitted your travel preferences yet.
       </p>
       <button
         onClick={() => navigate(`/trip/${tripId}/preferences`)}
-        className="flex items-center gap-2 w-full justify-center"
-        style={{
-          fontFamily: 'var(--font-body)', fontSize: 12, letterSpacing: '0.15em',
-          color: '#060d1f', background: '#c9952a', border: 'none', cursor: 'pointer',
-          padding: '13px 20px', transition: 'background 0.2s', width: '100%',
-        }}
-        onMouseEnter={e => { e.currentTarget.style.background = '#e8b84b' }}
-        onMouseLeave={e => { e.currentTarget.style.background = '#c9952a' }}
+        className="brut-btn-primary"
+        style={{ width: '100%', justifyContent: 'center', fontSize: 12 }}
       >
-        <Users size={13} />
         ADD MY PREFERENCES
       </button>
     </div>

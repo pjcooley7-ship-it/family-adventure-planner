@@ -14,6 +14,7 @@ Deno.serve(async (req) => {
 
   try {
     const { tripId } = await req.json() as { tripId: string }
+    console.log('[find-destinations] invoked for tripId:', tripId)
     if (!tripId) throw new Error('tripId is required')
 
     const authHeader = req.headers.get('Authorization')
@@ -64,26 +65,41 @@ Deno.serve(async (req) => {
   - Accommodation: ${p.accommodation_types.length > 0 ? p.accommodation_types.join(', ') : 'no preference'}${notes}`
     }).join('\n\n')
 
+    // ── Determine next run number + collect previously suggested cities ────────
+    const { data: existingDests } = await admin
+      .from('destinations')
+      .select('run_number, city')
+      .eq('trip_id', tripId)
+      .order('run_number', { ascending: false })
+    const nextRun = existingDests && existingDests.length > 0 ? existingDests[0].run_number + 1 : 1
+    const excludedCities: string[] = existingDests && existingDests.length > 0
+      ? [...new Set(existingDests.map((d: { city: string }) => d.city))]
+      : []
+
     // ── Call Claude ──────────────────────────────────────────────────────────
     const anthropic = new Anthropic({ apiKey: anthropicKey })
 
     const message = await anthropic.messages.create({
       model: 'claude-haiku-4-5-20251001',
-      max_tokens: 1200,
+      max_tokens: 2000,
       messages: [{
         role: 'user',
         content: `You are an expert travel planner helping a group find the perfect shared destination.
 
-Given these travelers' preferences, recommend exactly 3 destinations that best satisfy the whole group. Weigh geographic accessibility (minimize combined travel), budget overlap, shared activities, and date flexibility. Prioritise destinations where everyone can actually fly (consider their origin airports).
+Given these travelers' preferences, recommend exactly 5 destinations that best satisfy the whole group. Weigh geographic accessibility (minimize combined travel), budget overlap, shared activities, and date flexibility. Prioritise destinations where everyone can actually fly (consider their origin airports).
 
 ${travelersText}
-
+${excludedCities.length > 0 ? `\nIMPORTANT: The following cities have already been suggested to this group — do NOT include any of them in your response:\n${excludedCities.join(', ')}\n` : ''}
 Return ONLY a valid JSON array — no markdown fences, no extra text. Each object must have exactly these fields:
 - "city": string
 - "country": string (full name)
-- "country_code": string (ISO 3166-1 alpha-2, e.g. "PT")
+- "country_code": string (ISO 3166-1 alpha-2 for the COUNTRY the city is in — e.g. Crete → "GR", Canary Islands → "ES", Madeira → "PT", Sicily → "IT")
+- "destination_iata": string (IATA code of the nearest major commercial airport serving this destination — e.g. Crete → "HER", Barcelona → "BCN", Lisbon → "LIS", Paris → "CDG")
 - "match_score": integer 0–100 (how well it fits the whole group)
 - "ai_reasoning": string (2–3 sentences explaining why this works for THIS specific group — mention the travelers by name and reference their specific constraints)
+- "vibe_tags": array of 2–4 short strings from this set: Beach, Culture, Nightlife, Nature, Food, History, Adventure, Relaxation, Family, Romance, City Break, Mountains
+- "best_months": string describing the best travel window, e.g. "May–September" or "Year-round"
+- "flight_note": string summarising approximate flight time from the group's origins, e.g. "3–5 hrs from all origins" or "4 hrs (LHR), 9 hrs (JFK)"
 
 Order from best match to worst.`,
       }],
@@ -94,8 +110,9 @@ Order from best match to worst.`,
     const jsonStr = raw.replace(/^```(?:json)?\n?/m, '').replace(/\n?```$/m, '').trim()
 
     let destinations: Array<{
-      city: string; country: string; country_code: string
+      city: string; country: string; country_code: string; destination_iata: string
       match_score: number; ai_reasoning: string
+      vibe_tags: string[]; best_months: string; flight_note: string
     }>
 
     try {
@@ -108,17 +125,20 @@ Order from best match to worst.`,
       throw new Error('AI returned an unexpected format')
     }
 
-    // ── Replace existing destinations ────────────────────────────────────────
-    await admin.from('destinations').delete().eq('trip_id', tripId)
-
-    const rows = destinations.slice(0, 3).map((d, i) => ({
-      trip_id:      tripId,
-      city:         d.city,
-      country:      d.country,
-      country_code: d.country_code ?? null,
-      ai_reasoning: d.ai_reasoning ?? null,
-      match_score:  typeof d.match_score === 'number' ? d.match_score : null,
-      rank:         i + 1,
+    // ── Insert new run (old runs are preserved) ──────────────────────────────
+    const rows = destinations.slice(0, 5).map((d, i) => ({
+      trip_id:          tripId,
+      city:             d.city,
+      country:          d.country,
+      country_code:     d.country_code ?? null,
+      destination_iata: d.destination_iata ?? null,
+      ai_reasoning:     d.ai_reasoning ?? null,
+      match_score:      typeof d.match_score === 'number' ? d.match_score : null,
+      rank:             i + 1,
+      run_number:       nextRun,
+      vibe_tags:        Array.isArray(d.vibe_tags) ? d.vibe_tags : [],
+      best_months:      d.best_months ?? null,
+      flight_note:      d.flight_note ?? null,
     }))
 
     const { data: inserted, error: insertError } = await admin
@@ -136,6 +156,7 @@ Order from best match to worst.`,
 
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Unknown error'
+    console.error('[find-destinations] error:', message, err)
     return new Response(JSON.stringify({ error: message }), {
       status: 400,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

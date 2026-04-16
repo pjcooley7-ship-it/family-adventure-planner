@@ -12,9 +12,28 @@ const ResultsPage       = lazy(() => import('@/pages/ResultsPage'))
 
 function LoadingScreen() {
   return (
-    <div className="min-h-screen topo-curves flex items-center justify-center" style={{ background: '#060d1f' }}>
-      <p className="font-display text-2xl italic animate-pulse" style={{ fontFamily: 'var(--font-display)', color: '#c9952a' }}>
-        charting your course...
+    <div
+      className="min-h-screen flex flex-col items-center justify-center gap-5"
+      style={{ background: 'var(--color-surface)' }}
+    >
+      <div
+        style={{
+          width: 36, height: 36,
+          border: '3px solid var(--color-ink)',
+          borderTopColor: 'transparent',
+          animation: 'spin 1s linear infinite',
+        }}
+      />
+      <p
+        style={{
+          fontFamily: 'var(--font-mono)',
+          fontSize: 11,
+          letterSpacing: '0.15em',
+          textTransform: 'uppercase',
+          color: 'var(--color-ink-3)',
+        }}
+      >
+        Loading…
       </p>
     </div>
   )

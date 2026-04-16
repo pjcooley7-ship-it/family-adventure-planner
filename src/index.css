@@ -1,21 +1,39 @@
-@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500&family=Jost:wght@300;400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=Space+Mono:wght@400;700&display=swap');
 
 @import "tailwindcss";
 
 @theme {
-  --color-ink: #060d1f;
-  --color-ink-light: #0d1830;
-  --color-ink-mid: #1a2845;
-  --color-parchment: #f2eadb;
-  --color-parchment-dark: #e0d4c0;
-  --color-gold: #c9952a;
-  --color-gold-light: #e8b84b;
-  --color-gold-muted: #8a6520;
-  --color-terra: #b05c3a;
-  --color-mist: #7a8fa8;
+  /* ── Color system ─────────────────────────────── */
+  --color-bg:            #FFFDF7;   /* warm paper white — cards / content bg */
+  --color-surface:       #F5F2EB;   /* page-level surface (behind document) */
+  --color-surface-2:     #EDE9E0;   /* slightly darker surface for map/section bg */
+  --color-ink:           #1a1a1a;   /* near-black — text, borders */
+  --color-ink-2:         #888888;   /* muted text */
+  --color-ink-3:         #aaaaaa;   /* hint / placeholder */
+  --border-soft:         #e8e4dd;   /* internal dividers */
 
-  --font-display: 'Cormorant Garamond', Georgia, serif;
-  --font-body: 'Jost', sans-serif;
+  /* Accents — use semantically */
+  --color-green:         #1D9E75;   /* positive / success */
+  --color-green-fg:      #0F6E56;
+  --color-green-bg:      #EAF7F2;
+  --color-amber:         #EF9F27;   /* warning / attention */
+  --color-amber-fg:      #BA7517;
+  --color-amber-bg:      #FEF4E2;
+  --color-coral:         #D85A30;   /* negative / alert */
+  --color-coral-fg:      #993C1D;
+  --color-coral-bg:      #FBE9E3;
+  --color-purple:        #7F77DD;   /* decorative */
+  --color-teal:          #5DCAA5;   /* decorative */
+
+  /* Legacy aliases (keep for any references) */
+  --color-accent:        #D85A30;
+  --color-accent-bg:     #FBE9E3;
+  --color-accent-dark:   #993C1D;
+
+  /* ── Typography ───────────────────────────────── */
+  --font-display: 'DM Sans', system-ui, sans-serif;
+  --font-body:    'DM Sans', system-ui, sans-serif;
+  --font-mono:    'Space Mono', 'Courier New', monospace;
 }
 
 * {
@@ -30,105 +48,172 @@ html, body, #root {
 
 html {
   font-family: var(--font-body);
-  background-color: var(--color-ink);
-  color: var(--color-parchment);
+  background-color: var(--color-surface);
+  color: var(--color-ink);
   scroll-behavior: smooth;
   -webkit-font-smoothing: antialiased;
 }
 
-/* Topographic contour background */
-.topo-bg {
-  background-color: var(--color-ink);
-  background-image:
-    repeating-linear-gradient(
-      0deg,
-      transparent,
-      transparent 59px,
-      rgba(201, 149, 42, 0.035) 59px,
-      rgba(201, 149, 42, 0.035) 60px
-    ),
-    repeating-linear-gradient(
-      90deg,
-      transparent,
-      transparent 59px,
-      rgba(201, 149, 42, 0.035) 59px,
-      rgba(201, 149, 42, 0.035) 60px
-    );
-}
-
+/* ── Legacy bg utilities — now neutral stubs ──────────────────────────────── */
+.topo-bg,
 .topo-curves {
-  position: relative;
-  overflow: hidden;
+  background-color: var(--color-surface);
 }
 
-.topo-curves::before {
-  content: '';
-  position: absolute;
-  inset: -50%;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='800' height='800'%3E%3Cg fill='none' stroke='rgba(201,149,42,0.07)' stroke-width='1'%3E%3Cellipse cx='400' cy='400' rx='80' ry='50'/%3E%3Cellipse cx='400' cy='400' rx='140' ry='90'/%3E%3Cellipse cx='400' cy='400' rx='200' ry='130'/%3E%3Cellipse cx='400' cy='400' rx='265' ry='175'/%3E%3Cellipse cx='400' cy='400' rx='330' ry='215'/%3E%3Cellipse cx='400' cy='400' rx='395' ry='260'/%3E%3C/g%3E%3C/svg%3E");
-  background-repeat: repeat;
-  background-size: 500px 500px;
-  pointer-events: none;
-  animation: drift 80s linear infinite;
-}
+/* ── Brutalist utility classes ────────────────────────────────────────────── */
 
-@keyframes drift {
-  from { transform: translate(0, 0); }
-  to { transform: translate(50px, 30px); }
+/* Primary button — black fill, inverts on hover */
+.brut-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--color-ink);
+  color: var(--color-bg);
+  border: 2.5px solid var(--color-ink);
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 500;
+  padding: 10px 16px;
+  cursor: pointer;
+  transition: background 150ms ease, color 150ms ease, transform 100ms ease, box-shadow 100ms ease;
 }
-
-/* Gold hairline border utility */
-.border-gold {
-  border: 1px solid rgba(201, 149, 42, 0.35);
-}
-
-/* Parchment card */
-.card-parchment {
-  background: var(--color-parchment);
+.brut-btn-primary:hover:not(:disabled) {
+  background: var(--color-bg);
   color: var(--color-ink);
 }
-
-/* Display font */
-.font-display {
-  font-family: var(--font-display);
+.brut-btn-primary:active:not(:disabled) {
+  transform: translate(1px, 1px);
+  box-shadow: 2px 2px 0 var(--color-ink);
+}
+.brut-btn-primary:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
 }
 
-/* Grain overlay */
-body::after {
-  content: '';
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  opacity: 0.03;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  background-size: 256px 256px;
-  z-index: 9999;
+/* Secondary (ghost) button — transparent fill, inverts on hover */
+.brut-btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  color: var(--color-ink);
+  border: 2.5px solid var(--color-ink);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 10px 16px;
+  cursor: pointer;
+  transition: background 150ms ease, color 150ms ease, transform 100ms ease, box-shadow 100ms ease;
+}
+.brut-btn-ghost:hover {
+  background: var(--color-ink);
+  color: var(--color-bg);
+}
+.brut-btn-ghost:active {
+  transform: translate(1px, 1px);
+  box-shadow: 2px 2px 0 var(--color-ink);
 }
 
-/* Animations */
-@keyframes draw-path {
-  from { stroke-dashoffset: var(--path-length, 1000); }
-  to { stroke-dashoffset: 0; }
+/* Card — thick border, offset hover shadow */
+.brut-card {
+  background: var(--color-bg);
+  border: 2.5px solid var(--color-ink);
+  transition: transform 150ms ease, box-shadow 150ms ease;
+}
+.brut-card:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 4px 4px 0 var(--color-ink);
 }
 
-@keyframes pulse-dot {
-  0%, 100% { r: 5; opacity: 1; }
-  50% { r: 8; opacity: 0.7; }
+/* Inline mono label */
+.brut-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-ink-2);
 }
 
-@keyframes fade-up {
-  from { opacity: 0; transform: translateY(28px); }
-  to { opacity: 1; transform: translateY(0); }
+/* Input base */
+.brut-input {
+  background: var(--color-bg);
+  border: 2.5px solid var(--color-ink);
+  font-family: var(--font-body);
+  font-size: 15px;
+  color: var(--color-ink);
+  padding: 12px 14px;
+  outline: none;
+  width: 100%;
+  transition: box-shadow 150ms ease;
+}
+.brut-input::placeholder {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--color-ink-3);
+}
+.brut-input:focus {
+  box-shadow: 4px 4px 0 var(--color-ink);
+}
+
+/* Display / body font utilities */
+.font-display { font-family: var(--font-display); }
+.font-mono    { font-family: var(--font-mono); }
+
+/* ── Status badge helpers ──────────────────────────────────────────────────── */
+.badge-positive {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-green-fg);
+  border: 2px solid var(--color-green);
+  padding: 2px 8px;
+}
+.badge-warning {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-amber-fg);
+  border: 2px solid var(--color-amber);
+  padding: 2px 8px;
+}
+.badge-negative {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-coral-fg);
+  border: 2px solid var(--color-coral);
+  padding: 2px 8px;
+}
+.badge-neutral {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-ink-2);
+  border: 2px solid var(--color-ink-3);
+  padding: 2px 8px;
+}
+
+/* ── Animations ───────────────────────────────────────────────────────────── */
+
+@keyframes fadeSlideUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes fade-in {
   from { opacity: 0; }
-  to { opacity: 1; }
+  to   { opacity: 1; }
 }
 
-@keyframes glow-pulse {
-  0%, 100% { filter: drop-shadow(0 0 6px rgba(201, 149, 42, 0.6)); }
-  50% { filter: drop-shadow(0 0 18px rgba(201, 149, 42, 0.9)); }
+@keyframes draw-path {
+  from { stroke-dashoffset: var(--path-length, 1000); }
+  to   { stroke-dashoffset: 0; }
 }
 
 @keyframes spin {
@@ -136,23 +221,38 @@ body::after {
   to   { transform: rotate(360deg); }
 }
 
+/* Keep legacy fade-up alias */
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
 .animate-fade-up {
   opacity: 0;
-  animation: fade-up 0.9s ease forwards;
+  animation: fadeSlideUp 400ms cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
 }
 
 .animate-fade-in {
   opacity: 0;
-  animation: fade-in 0.7s ease forwards;
+  animation: fade-in 400ms ease forwards;
 }
 
-.delay-100 { animation-delay: 0.1s; }
-.delay-200 { animation-delay: 0.2s; }
-.delay-300 { animation-delay: 0.3s; }
-.delay-400 { animation-delay: 0.4s; }
-.delay-500 { animation-delay: 0.5s; }
-.delay-600 { animation-delay: 0.6s; }
-.delay-700 { animation-delay: 0.7s; }
-.delay-800 { animation-delay: 0.8s; }
-.delay-1000 { animation-delay: 1.0s; }
-.delay-1200 { animation-delay: 1.2s; }
+/* Stagger delays */
+.delay-100  { animation-delay: 0.10s; }
+.delay-200  { animation-delay: 0.20s; }
+.delay-300  { animation-delay: 0.30s; }
+.delay-400  { animation-delay: 0.40s; }
+.delay-500  { animation-delay: 0.50s; }
+.delay-600  { animation-delay: 0.60s; }
+.delay-700  { animation-delay: 0.70s; }
+.delay-800  { animation-delay: 0.80s; }
+.delay-1000 { animation-delay: 1.00s; }
+.delay-1200 { animation-delay: 1.20s; }
+
+/* ── Brutalist loading spinner ────────────────────────────────────────────── */
+.brut-spinner {
+  width: 28px;
+  height: 28px;
+  border: 2.5px solid var(--color-ink);
+  animation: spin 700ms linear infinite;
+}

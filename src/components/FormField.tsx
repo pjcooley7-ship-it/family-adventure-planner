@@ -9,10 +9,10 @@ export function FormField({ label, hint, children }: FormFieldProps) {
     <div className="flex flex-col gap-2">
       <label
         style={{
-          fontFamily: 'var(--font-body)',
-          fontSize: 11,
-          letterSpacing: '0.2em',
-          color: 'rgba(201,149,42,0.8)',
+          fontFamily: 'var(--font-mono)',
+          fontSize: 10,
+          letterSpacing: '0.1em',
+          color: 'var(--color-ink-2)',
           textTransform: 'uppercase',
         }}
       >
@@ -20,7 +20,7 @@ export function FormField({ label, hint, children }: FormFieldProps) {
       </label>
       {children}
       {hint && (
-        <p style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: 'rgba(242,234,219,0.3)' }}>
+        <p style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--color-ink-3)' }}>
           {hint}
         </p>
       )}
@@ -31,13 +31,13 @@ export function FormField({ label, hint, children }: FormFieldProps) {
 const inputBase: React.CSSProperties = {
   fontFamily: 'var(--font-body)',
   fontSize: 15,
-  color: '#f2eadb',
-  background: 'rgba(255,255,255,0.03)',
-  border: '1px solid rgba(201,149,42,0.25)',
-  padding: '12px 16px',
+  color: 'var(--color-ink)',
+  background: 'var(--color-bg)',
+  border: '2.5px solid var(--color-ink)',
+  padding: '12px 14px',
   outline: 'none',
   width: '100%',
-  transition: 'border-color 0.2s',
+  transition: 'box-shadow 150ms ease',
 }
 
 interface TextInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
@@ -52,9 +52,9 @@ export function TextInput({ value, onChange, placeholder, type = 'text', ...rest
       value={value}
       onChange={onChange}
       placeholder={placeholder}
-      style={{ ...inputBase, colorScheme: 'dark' }}
-      onFocus={e => { e.currentTarget.style.borderColor = 'rgba(201,149,42,0.7)' }}
-      onBlur={e => { e.currentTarget.style.borderColor = 'rgba(201,149,42,0.25)' }}
+      style={inputBase}
+      onFocus={e => { e.currentTarget.style.boxShadow = '4px 4px 0 var(--color-ink)' }}
+      onBlur={e => { e.currentTarget.style.boxShadow = 'none' }}
       {...rest}
     />
   )
@@ -71,9 +71,9 @@ export function Select({ value, onChange, children, ...rest }: SelectProps) {
     <select
       value={value}
       onChange={onChange}
-      style={{ ...inputBase, cursor: 'pointer', colorScheme: 'dark' }}
-      onFocus={e => { e.currentTarget.style.borderColor = 'rgba(201,149,42,0.7)' }}
-      onBlur={e => { e.currentTarget.style.borderColor = 'rgba(201,149,42,0.25)' }}
+      style={{ ...inputBase, cursor: 'pointer' }}
+      onFocus={e => { e.currentTarget.style.boxShadow = '4px 4px 0 var(--color-ink)' }}
+      onBlur={e => { e.currentTarget.style.boxShadow = 'none' }}
       {...rest}
     >
       {children}
@@ -90,39 +90,32 @@ interface CounterProps {
 
 export function Counter({ value, onChange, min = 0, max = 20 }: CounterProps) {
   return (
-    <div className="flex items-center gap-0" style={{ display: 'inline-flex' }}>
+    <div style={{ display: 'inline-flex' }}>
       <button
         type="button"
         onClick={() => onChange(Math.max(min, value - 1))}
         style={{
-          width: 44,
-          height: 44,
-          fontFamily: 'var(--font-body)',
-          fontSize: 20,
-          color: '#c9952a',
-          background: 'rgba(255,255,255,0.03)',
-          border: '1px solid rgba(201,149,42,0.25)',
-          cursor: 'pointer',
-          transition: 'background 0.2s',
+          width: 40, height: 40,
+          fontFamily: 'var(--font-mono)', fontSize: 18,
+          color: 'var(--color-ink)',
+          background: 'var(--color-bg)',
+          border: '2.5px solid var(--color-ink)', borderRight: 'none',
+          cursor: 'pointer', transition: 'background 150ms ease, color 150ms ease',
         }}
-        onMouseEnter={e => { e.currentTarget.style.background = 'rgba(201,149,42,0.1)' }}
-        onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.03)' }}
+        onMouseEnter={e => { e.currentTarget.style.background = 'var(--color-ink)'; e.currentTarget.style.color = 'var(--color-bg)' }}
+        onMouseLeave={e => { e.currentTarget.style.background = 'var(--color-bg)'; e.currentTarget.style.color = 'var(--color-ink)' }}
       >
         −
       </button>
       <span
         style={{
-          width: 56,
-          height: 44,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          fontFamily: 'var(--font-display)',
-          fontSize: 22,
-          color: '#f2eadb',
-          background: 'rgba(255,255,255,0.03)',
-          borderTop: '1px solid rgba(201,149,42,0.25)',
-          borderBottom: '1px solid rgba(201,149,42,0.25)',
+          width: 52, height: 40,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontFamily: 'var(--font-mono)', fontSize: 16, fontWeight: 700,
+          color: 'var(--color-ink)',
+          background: 'var(--color-surface)',
+          border: '2.5px solid var(--color-ink)',
+          borderLeft: 'none', borderRight: 'none',
         }}
       >
         {value}
@@ -131,18 +124,15 @@ export function Counter({ value, onChange, min = 0, max = 20 }: CounterProps) {
         type="button"
         onClick={() => onChange(Math.min(max, value + 1))}
         style={{
-          width: 44,
-          height: 44,
-          fontFamily: 'var(--font-body)',
-          fontSize: 20,
-          color: '#c9952a',
-          background: 'rgba(255,255,255,0.03)',
-          border: '1px solid rgba(201,149,42,0.25)',
-          cursor: 'pointer',
-          transition: 'background 0.2s',
+          width: 40, height: 40,
+          fontFamily: 'var(--font-mono)', fontSize: 18,
+          color: 'var(--color-ink)',
+          background: 'var(--color-bg)',
+          border: '2.5px solid var(--color-ink)', borderLeft: 'none',
+          cursor: 'pointer', transition: 'background 150ms ease, color 150ms ease',
         }}
-        onMouseEnter={e => { e.currentTarget.style.background = 'rgba(201,149,42,0.1)' }}
-        onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.03)' }}
+        onMouseEnter={e => { e.currentTarget.style.background = 'var(--color-ink)'; e.currentTarget.style.color = 'var(--color-bg)' }}
+        onMouseLeave={e => { e.currentTarget.style.background = 'var(--color-bg)'; e.currentTarget.style.color = 'var(--color-ink)' }}
       >
         +
       </button>
@@ -164,32 +154,29 @@ export function Toggle({ checked, onChange, label }: ToggleProps) {
       className="flex items-center gap-3"
       style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
     >
+      {/* Square track — no border-radius */}
       <div
         style={{
-          width: 44,
-          height: 24,
-          borderRadius: 12,
-          background: checked ? '#c9952a' : 'rgba(255,255,255,0.08)',
-          border: '1px solid rgba(201,149,42,0.3)',
+          width: 44, height: 24,
+          background: checked ? 'var(--color-ink)' : 'var(--color-bg)',
+          border: '2.5px solid var(--color-ink)',
           position: 'relative',
-          transition: 'background 0.25s',
+          transition: 'background 150ms ease',
           flexShrink: 0,
         }}
       >
         <div
           style={{
             position: 'absolute',
-            top: 3,
-            left: checked ? 22 : 3,
-            width: 16,
-            height: 16,
-            borderRadius: '50%',
-            background: '#f2eadb',
-            transition: 'left 0.25s',
+            top: 2,
+            left: checked ? 20 : 2,
+            width: 16, height: 16,
+            background: checked ? 'var(--color-bg)' : 'var(--color-ink)',
+            transition: 'left 150ms ease',
           }}
         />
       </div>
-      <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: 'rgba(242,234,219,0.7)' }}>
+      <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: 'var(--color-ink)' }}>
         {label}
       </span>
     </button>

@@ -1,6 +1,6 @@
 export type Json = string | number | boolean | null | { [key: string]: Json } | Json[]
 
-export type TripStatus = 'collecting' | 'matching' | 'matched'
+export type TripStatus = 'collecting' | 'matching' | 'matched' | 'decided'
 
 export interface Database {
   public: {
@@ -12,6 +12,7 @@ export interface Database {
           code: string
           created_by: string
           status: TripStatus
+          decided_destination_id: string | null
           created_at: string
         }
         Insert: {
@@ -20,11 +21,13 @@ export interface Database {
           code?: string
           created_by: string
           status?: TripStatus
+          decided_destination_id?: string | null
           created_at?: string
         }
         Update: {
           name?: string
           status?: TripStatus
+          decided_destination_id?: string | null
         }
         Relationships: []
       }
@@ -126,9 +129,14 @@ export interface Database {
           city: string
           country: string
           country_code: string | null
+          destination_iata: string | null
           ai_reasoning: string | null
           match_score: number | null
           rank: number | null
+          run_number: number
+          vibe_tags: string[]
+          best_months: string | null
+          flight_note: string | null
           created_at: string
         }
         Insert: {
@@ -137,9 +145,14 @@ export interface Database {
           city: string
           country: string
           country_code?: string | null
+          destination_iata?: string | null
           ai_reasoning?: string | null
           match_score?: number | null
           rank?: number | null
+          run_number?: number
+          vibe_tags?: string[]
+          best_months?: string | null
+          flight_note?: string | null
           created_at?: string
         }
         Update: never
@@ -165,6 +178,31 @@ export interface Database {
         Relationships: []
       }
     }
+
+      flight_results: {
+        Row: {
+          id: string
+          trip_id: string
+          destination_id: string
+          user_id: string
+          traveler_name: string
+          origin_iata: string
+          price: number | null
+          currency: string | null
+          airline: string | null
+          airline_logo: string | null
+          outbound_date: string | null
+          return_date: string | null
+          duration_minutes: number | null
+          stops: number | null
+          booking_token: string | null
+          error_message: string | null
+          fetched_at: string
+        }
+        Insert: never
+        Update: never
+        Relationships: []
+      }
 
     Views: {
       trip_summary: {
@@ -199,7 +237,8 @@ export interface Database {
 }
 
 // ── Convenience row types ─────────────────────────────────────
-export type Trip        = Database['public']['Tables']['trips']['Row']
+export type Trip          = Database['public']['Tables']['trips']['Row']
+export type FlightResult  = Database['public']['Tables']['flight_results']['Row']
 export type TripMember  = Database['public']['Tables']['trip_members']['Row']
 export type Preferences = Database['public']['Tables']['preferences']['Row']
 export type Destination = Database['public']['Tables']['destinations']['Row']

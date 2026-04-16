@@ -61,19 +61,58 @@ export function useJoinTrip() {
         .single()
       if (tripError) throw new Error('Trip not found — check the code and try again')
 
-      // Add as member (upsert to handle rejoining)
+      // Check if already a member
+      const { data: existing } = await supabase
+        .from('trip_members')
+        .select('id')
+        .eq('trip_id', trip.id)
+        .eq('user_id', user.id)
+        .maybeSingle()
+
+      if (existing) {
+        return { trip, isNew: false }
+      }
+
       const { error: memberError } = await supabase
         .from('trip_members')
-        .upsert({ trip_id: trip.id, user_id: user.id, display_name: displayName })
+        .insert({ trip_id: trip.id, user_id: user.id, display_name: displayName })
       if (memberError) throw memberError
 
-      return trip
+      return { trip, isNew: true }
     },
-    onSuccess: (trip) => {
+    onSuccess: ({ trip, isNew }) => {
       queryClient.invalidateQueries({ queryKey: ['trip', trip.id] })
       queryClient.invalidateQueries({ queryKey: ['trip-members', trip.id] })
-      toast.success(`Joined trip: ${trip.name}`)
-      navigate(`/trip/${trip.id}/preferences`)
+      if (isNew) {
+        toast.success(`Joined trip: ${trip.name}`)
+        navigate(`/trip/${trip.id}/preferences`)
+      } else {
+        toast.info(`You're already in ${trip.name}`)
+        navigate(`/trip/${trip.id}`)
+      }
+    },
+    onError: (err: Error) => {
+      toast.error(err.message)
+    },
+  })
+}
+
+// ── Lock in a decided destination (creator only) ──────────────
+
+export function useLockDestination(tripId: string) {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (destinationId: string) => {
+      const { error } = await supabase
+        .from('trips')
+        .update({ status: 'decided', decided_destination_id: destinationId })
+        .eq('id', tripId)
+      if (error) throw error
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['trip', tripId] })
+      toast.success("It's decided! Your destination is locked in.")
     },
     onError: (err: Error) => {
       toast.error(err.message)

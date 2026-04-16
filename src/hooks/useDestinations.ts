@@ -9,7 +9,8 @@ export function useDestinations(tripId: string) {
         .from('destinations')
         .select('*')
         .eq('trip_id', tripId)
-        .order('rank')
+        .order('run_number', { ascending: true })
+        .order('rank', { ascending: true })
       if (error) throw error
       return data
     },
