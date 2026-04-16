@@ -339,7 +339,7 @@ export default function ResultsPage() {
           {hasFlights && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 24 }}>
               {flightResults.map(result => (
-                <FlightCard key={result.id} result={result} />
+                <FlightCard key={result.id} result={result} destinationIata={decidedDestination.destination_iata ?? undefined} />
               ))}
               <p style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--color-ink-3)', textAlign: 'right', marginTop: 4 }}>
                 PRICES AS OF {new Date(flightResults[0]?.fetched_at ?? '').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })} · REFRESH TO UPDATE
@@ -751,7 +751,7 @@ function DestinationCard({
 
 /* ─── Flight card ─────────────────────────────────────────────────────────── */
 
-function FlightCard({ result }: { result: FlightResult }) {
+function FlightCard({ result, destinationIata }: { result: FlightResult; destinationIata?: string }) {
   const hasError = !!result.error_message
   const price = result.price != null
     ? new Intl.NumberFormat('en-US', { style: 'currency', currency: result.currency ?? 'USD', maximumFractionDigits: 0 }).format(result.price)
@@ -770,10 +770,14 @@ function FlightCard({ result }: { result: FlightResult }) {
     ? new Date(result.return_date + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
     : null
 
+  const bookingUrl = !hasError && destinationIata && result.origin_iata && result.outbound_date && result.return_date
+    ? `https://www.google.com/flights#search;f=${result.origin_iata};t=${destinationIata};d=${result.outbound_date};r=${result.return_date};tt=o`
+    : null
+
   return (
     <div style={{
       border: '2.5px solid var(--color-ink)',
-      background: hasError ? 'var(--color-bg)' : 'var(--color-bg)',
+      background: 'var(--color-bg)',
       display: 'flex', alignItems: 'center', justifyContent: 'space-between',
       padding: '14px 18px', gap: 12,
       opacity: hasError ? 0.6 : 1,
@@ -818,16 +822,37 @@ function FlightCard({ result }: { result: FlightResult }) {
         )}
       </div>
 
-      {/* Price + airline */}
+      {/* Price + book */}
       {!hasError && (
-        <div style={{ flexShrink: 0, textAlign: 'right' }}>
-          {result.airline_logo && (
-            <img src={result.airline_logo} alt={result.airline ?? ''} style={{ height: 16, marginBottom: 4, marginLeft: 'auto' }} />
-          )}
-          {price && (
-            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 14, fontWeight: 700, color: 'var(--color-ink)' }}>
-              {price}
-            </span>
+        <div style={{ flexShrink: 0, textAlign: 'right', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6 }}>
+          <div className="flex items-center gap-2">
+            {result.airline_logo && (
+              <img src={result.airline_logo} alt={result.airline ?? ''} style={{ height: 14 }} />
+            )}
+            {price && (
+              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 14, fontWeight: 700, color: 'var(--color-ink)' }}>
+                {price}
+              </span>
+            )}
+          </div>
+          {bookingUrl && (
+            <a
+              href={bookingUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase',
+                color: 'var(--color-bg)', background: 'var(--color-ink)',
+                border: '2px solid var(--color-ink)',
+                padding: '3px 8px',
+                textDecoration: 'none',
+                whiteSpace: 'nowrap',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'var(--color-accent)'; e.currentTarget.style.borderColor = 'var(--color-accent)' }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'var(--color-ink)'; e.currentTarget.style.borderColor = 'var(--color-ink)' }}
+            >
+              BOOK →
+            </a>
           )}
         </div>
       )}
