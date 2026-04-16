@@ -9,10 +9,9 @@ import { useDestinations, useTripVotes, useToggleVote } from '@/hooks/useDestina
 import { useLockDestination } from '@/hooks/useTripMutations'
 import { useFlightResults, useSearchFlights } from '@/hooks/useFlights'
 import { useAuth } from '@/hooks/useAuth'
-import type { FlightResult } from '@/integrations/supabase/types'
+import type { FlightResult, Destination } from '@/lib/customTypes'
 import { DocContainer } from '@/components/DocContainer'
 import { countryCodeToFlag } from '@/lib/utils'
-import type { Destination } from '@/integrations/supabase/types'
 
 type GeneratingStatus = 'idle' | 'generating' | 'done' | 'error'
 
