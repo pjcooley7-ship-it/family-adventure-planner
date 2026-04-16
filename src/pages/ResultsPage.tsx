@@ -9,7 +9,7 @@ import { useDestinations, useTripVotes, useToggleVote } from '@/hooks/useDestina
 import { useLockDestination } from '@/hooks/useTripMutations'
 import { useFlightResults, useSearchFlights } from '@/hooks/useFlights'
 import { useAuth } from '@/hooks/useAuth'
-import type { FlightResult, Destination } from '@/lib/customTypes'
+import type { FlightResult, Destination } from '@/integrations/supabase/types'
 import { DocContainer } from '@/components/DocContainer'
 import { countryCodeToFlag } from '@/lib/utils'
 

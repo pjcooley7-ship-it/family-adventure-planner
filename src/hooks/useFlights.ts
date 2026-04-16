@@ -2,16 +2,16 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import { supabase } from '@/integrations/supabase/client'
-import { fromTable } from '@/lib/supabaseHelpers'
-import type { FlightResult } from '@/lib/customTypes'
+import type { FlightResult } from '@/integrations/supabase/types'
 
-export type { FlightResult } from '@/lib/customTypes'
+export type { FlightResult } from '@/integrations/supabase/types'
 
 export function useFlightResults(tripId: string, destinationId: string | null) {
   return useQuery({
     queryKey: ['flight-results', tripId, destinationId],
     queryFn: async () => {
-      const { data, error } = await fromTable('flight_results')
+      const { data, error } = await supabase
+        .from('flight_results')
         .select('*')
         .eq('trip_id', tripId)
         .eq('destination_id', destinationId!)

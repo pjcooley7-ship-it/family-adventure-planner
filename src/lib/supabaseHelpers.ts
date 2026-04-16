@@ -1,16 +1,8 @@
-/**
- * Helper to query Supabase tables that exist in the database
- * but aren't yet reflected in the auto-generated types.ts.
- *
- * Usage:
- *   const { data } = await fromTable('my_table').select('*').eq('id', x)
- *
- * Once types.ts is regenerated with the full schema, replace
- * fromTable('x') calls with supabase.from('x') and remove this file.
- */
+// This file is no longer needed — all tables are typed in integrations/supabase/types.ts.
+// Kept as a stub so any remaining imports don't break.
 import { supabase } from '@/integrations/supabase/client'
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function fromTable(table: string) {
-  return (supabase as any).from(table)
+/** @deprecated Use supabase.from() directly */
+export function fromTable(table: Parameters<typeof supabase.from>[0]) {
+  return supabase.from(table)
 }
