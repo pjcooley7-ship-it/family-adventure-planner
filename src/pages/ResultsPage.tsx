@@ -1,15 +1,19 @@
 import { useEffect, useRef, useState } from 'react'
 import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import { toast } from 'sonner'
-import { ArrowLeft, RotateCcw, Plane, Clock, AlertCircle } from 'lucide-react'
+import { ArrowLeft, RotateCcw, Plane, Clock, AlertCircle, Hotel, Sparkles, ExternalLink, Star } from 'lucide-react'
 import { useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/integrations/supabase/client'
-import { useTrip, useTripMembers } from '@/hooks/useTrip'
+import { useTrip, useTripMembers, useTripPreferences } from '@/hooks/useTrip'
 import { useDestinations, useTripVotes, useToggleVote } from '@/hooks/useDestinations'
 import { useLockDestination } from '@/hooks/useTripMutations'
 import { useFlightResults, useSearchFlights } from '@/hooks/useFlights'
+import { useHotelResults, useSearchHotels } from '@/hooks/useHotels'
+import { useSuggestActivities } from '@/hooks/useActivities'
+import type { Activity } from '@/hooks/useActivities'
 import { useAuth } from '@/hooks/useAuth'
-import type { FlightResult, Destination } from '@/integrations/supabase/types'
+import { useIsMobile } from '@/hooks/useIsMobile'
+import type { FlightResult, HotelResult, Destination } from '@/integrations/supabase/types'
 import { DocContainer } from '@/components/DocContainer'
 import { countryCodeToFlag } from '@/lib/utils'
 
@@ -20,6 +24,7 @@ export default function ResultsPage() {
   const navigate = useNavigate()
   const location = useLocation()
   const { user } = useAuth()
+  const isMobile = useIsMobile()
 
   const [status, setStatus] = useState<GeneratingStatus>('idle')
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
@@ -38,6 +43,14 @@ export default function ResultsPage() {
     tripId!,
     trip?.decided_destination_id ?? null,
   )
+  const { data: allPrefs = [] } = useTripPreferences(tripId!)
+  const searchHotels = useSearchHotels(tripId!)
+  const { data: hotelResults = [] } = useHotelResults(
+    tripId!,
+    trip?.decided_destination_id ?? null,
+  )
+  const suggestActivities = useSuggestActivities(tripId!)
+  const [activities, setActivities] = useState<Activity[]>([])
 
   // ── Derive run groups ─────────────────────────────────────────────────────
   const runNumbers = [...new Set(allDestinations.map(d => d.run_number))].sort((a, b) => a - b)
@@ -164,7 +177,7 @@ export default function ResultsPage() {
     return (
       <DocContainer>
         <nav style={{
-          padding: '20px 32px',
+          padding: '20px var(--section-px)',
           borderBottom: '2.5px solid var(--color-ink)',
           display: 'flex', alignItems: 'center',
         }}>
@@ -208,13 +221,22 @@ export default function ResultsPage() {
   const maxVotesInRun = Math.max(0, ...voteCounts.values())
   void Math.max(0, ...voteCounts.values()) // maxVotes — kept for future use
 
+  // ── Date overlap check (only when all members have submitted) ────────────
+  const datesOverlap = (() => {
+    const withDates = allPrefs.filter(p => p.earliest_departure && p.latest_return)
+    if (withDates.length < 2 || withDates.length < members.length) return true // not enough data yet
+    const overlapStart = withDates.reduce((max, p) => p.earliest_departure! > max ? p.earliest_departure! : max, '')
+    const overlapEnd   = withDates.reduce((min, p) => p.latest_return! < min ? p.latest_return! : min, '9999-12-31')
+    return overlapStart <= overlapEnd
+  })()
+
   // ── Decided full page ─────────────────────────────────────────────────────
   if (isDecided && decidedDestination) {
     const hasFlights = flightResults.length > 0
     return (
       <DocContainer>
         <nav style={{
-          padding: '20px 32px',
+          padding: '20px var(--section-px)',
           borderBottom: '2.5px solid var(--color-ink)',
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         }}>
@@ -237,7 +259,7 @@ export default function ResultsPage() {
 
         {/* Destination banner */}
         <section style={{
-          margin: '32px 32px 0',
+          margin: '32px var(--section-px) 0',
           border: '2.5px solid var(--color-ink)',
           background: 'var(--color-accent)',
           boxShadow: '6px 6px 0 var(--color-ink)',
@@ -285,9 +307,26 @@ export default function ResultsPage() {
           </div>
         </section>
 
+        {/* Date-overlap warning */}
+        {!datesOverlap && (
+          <section style={{ padding: '24px var(--section-px) 0' }}>
+            <div style={{
+              border: '2.5px solid var(--color-ink)',
+              background: '#FFF3CD',
+              padding: '12px 16px',
+              display: 'flex', alignItems: 'flex-start', gap: 10,
+            }}>
+              <AlertCircle size={15} style={{ flexShrink: 0, marginTop: 1, color: '#92600A' }} />
+              <p style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: '#92600A', lineHeight: 1.5, margin: 0 }}>
+                <strong>Travel dates don't overlap.</strong> Members have non-overlapping date windows — flight prices shown are per each traveler's own dates, not shared trip dates. Ask everyone to update their preferences if you want to travel together.
+              </p>
+            </div>
+          </section>
+        )}
+
         {/* Flights section */}
-        <section style={{ padding: '32px 32px 0' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+        <section style={{ padding: '32px var(--section-px) 0' }}>
+          <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', alignItems: isMobile ? 'flex-start' : 'center', justifyContent: 'space-between', gap: 12, marginBottom: 16 }}>
             <div>
               <p className="brut-label" style={{ marginBottom: 4 }}>FLIGHTS PER TRAVELER</p>
               {decidedDestination.destination_iata && (
@@ -300,7 +339,7 @@ export default function ResultsPage() {
               onClick={() => searchFlights.mutate()}
               disabled={searchFlights.isPending}
               className="brut-btn-primary"
-              style={{ fontSize: 11, padding: '9px 16px' }}
+              style={{ fontSize: 11, padding: '9px 16px', ...(isMobile && { width: '100%', justifyContent: 'center' }) }}
             >
               <Plane size={11} style={{ marginRight: 6 }} />
               {searchFlights.isPending
@@ -348,9 +387,129 @@ export default function ResultsPage() {
           )}
         </section>
 
+        {/* Hotels section */}
+        <section style={{ padding: '32px var(--section-px) 0', borderTop: '2.5px solid var(--color-ink)' }}>
+          <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', alignItems: isMobile ? 'flex-start' : 'center', justifyContent: 'space-between', gap: 12, marginBottom: 16 }}>
+            <div>
+              <p className="brut-label" style={{ marginBottom: 4 }}>HOTELS</p>
+              {hotelResults.length > 0 && hotelResults[0].check_in_date && (
+                <p style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--color-ink-3)' }}>
+                  {new Date(hotelResults[0].check_in_date + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
+                  {' – '}
+                  {hotelResults[0].check_out_date
+                    ? new Date(hotelResults[0].check_out_date + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
+                    : ''}
+                </p>
+              )}
+            </div>
+            <button
+              onClick={() => searchHotels.mutate()}
+              disabled={searchHotels.isPending}
+              className="brut-btn-primary"
+              style={{ fontSize: 11, padding: '9px 16px', ...(isMobile && { width: '100%', justifyContent: 'center' }) }}
+            >
+              <Hotel size={11} style={{ marginRight: 6 }} />
+              {searchHotels.isPending
+                ? 'SEARCHING…'
+                : hotelResults.length > 0 ? 'REFRESH' : 'FIND HOTELS'}
+            </button>
+          </div>
+
+          {!hotelResults.length && !searchHotels.isPending && (
+            <p style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: 'var(--color-ink-3)', lineHeight: 1.6, marginBottom: 24 }}>
+              Find the best-rated hotels in {decidedDestination.city} based on your group's travel dates.
+            </p>
+          )}
+
+          {searchHotels.isPending && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 24 }}>
+              {[1, 2, 3].map(i => (
+                <div key={i} style={{
+                  border: '2.5px solid var(--color-ink)', padding: '16px 20px',
+                  background: 'var(--color-surface)', opacity: 0.5,
+                  display: 'flex', alignItems: 'center', gap: 12,
+                }}>
+                  <div style={{
+                    width: 16, height: 16, border: '2px solid var(--color-ink)',
+                    borderTopColor: 'transparent', borderRadius: 0,
+                    animation: 'spin 1s linear infinite',
+                  }} />
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--color-ink-2)' }}>
+                    SEARCHING…
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {hotelResults.length > 0 && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 24 }}>
+              {hotelResults.map(hotel => (
+                <HotelCard key={hotel.id} hotel={hotel} />
+              ))}
+              <p style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--color-ink-3)', textAlign: 'right', marginTop: 4 }}>
+                PRICES AS OF {new Date(hotelResults[0].fetched_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })} · REFRESH TO UPDATE
+              </p>
+            </div>
+          )}
+        </section>
+
+        {/* Activities section */}
+        <section style={{ padding: '32px var(--section-px) 0', borderTop: '2.5px solid var(--color-ink)' }}>
+          <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', alignItems: isMobile ? 'flex-start' : 'center', justifyContent: 'space-between', gap: 12, marginBottom: 16 }}>
+            <p className="brut-label">ACTIVITIES</p>
+            <button
+              onClick={() => suggestActivities.mutate(undefined, { onSuccess: setActivities })}
+              disabled={suggestActivities.isPending}
+              className="brut-btn-primary"
+              style={{ fontSize: 11, padding: '9px 16px', ...(isMobile && { width: '100%', justifyContent: 'center' }) }}
+            >
+              <Sparkles size={11} style={{ marginRight: 6 }} />
+              {suggestActivities.isPending
+                ? 'GENERATING…'
+                : activities.length > 0 ? 'REGENERATE' : 'SUGGEST ACTIVITIES'}
+            </button>
+          </div>
+
+          {!activities.length && !suggestActivities.isPending && (
+            <p style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: 'var(--color-ink-3)', lineHeight: 1.6, marginBottom: 24 }}>
+              Get AI-curated activity suggestions tailored to your group's interests.
+            </p>
+          )}
+
+          {suggestActivities.isPending && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 24 }}>
+              {[1, 2, 3].map(i => (
+                <div key={i} style={{
+                  border: '2.5px solid var(--color-ink)', padding: '16px 20px',
+                  background: 'var(--color-surface)', opacity: 0.5,
+                  display: 'flex', alignItems: 'center', gap: 12,
+                }}>
+                  <div style={{
+                    width: 16, height: 16, border: '2px solid var(--color-ink)',
+                    borderTopColor: 'transparent', borderRadius: 0,
+                    animation: 'spin 1s linear infinite',
+                  }} />
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--color-ink-2)' }}>
+                    GENERATING…
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {activities.length > 0 && (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 10, marginBottom: 24 }}>
+              {activities.map((activity, i) => (
+                <ActivityCard key={i} activity={activity} />
+              ))}
+            </div>
+          )}
+        </section>
+
         <footer style={{
-          borderTop: '2.5px solid var(--color-ink)', margin: '16px 0 0',
-          padding: '16px 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          borderTop: '2.5px solid var(--color-ink)', margin: '32px 0 0',
+          padding: '16px var(--section-px)', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         }}>
           <span style={{ fontFamily: 'var(--font-display)', fontSize: 14, fontWeight: 600, color: 'var(--color-ink)' }}>
             Wanderlust
@@ -368,7 +527,7 @@ export default function ResultsPage() {
 
       {/* Nav */}
       <nav style={{
-        padding: '20px 32px',
+        padding: '20px var(--section-px)',
         borderBottom: '2.5px solid var(--color-ink)',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
       }}>
@@ -390,7 +549,7 @@ export default function ResultsPage() {
       </nav>
 
       {/* Header */}
-      <section style={{ padding: '36px 32px 28px', borderBottom: '2.5px solid var(--color-ink)' }}>
+      <section style={{ padding: '36px var(--section-px) 28px', borderBottom: '2.5px solid var(--color-ink)' }}>
         <p className="brut-label animate-fade-up" style={{ marginBottom: 10 }}>
           AI RECOMMENDATIONS · {trip?.name?.toUpperCase()}
         </p>
@@ -451,13 +610,18 @@ export default function ResultsPage() {
       {/* Majority prompt — creator only, latest run, not yet decided */}
       {!isDecided && isCreator && hasMajority && leadingDest && activeRun === latestRun && (
         <div style={{
-          margin: '0 32px',
+          marginLeft: 'var(--section-px)',
+          marginRight: 'var(--section-px)',
           marginTop: 24,
           border: '2.5px solid var(--color-ink)',
           background: 'var(--color-surface)',
           boxShadow: '4px 4px 0 var(--color-ink)',
           padding: '16px 20px',
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16,
+          display: 'flex',
+          flexDirection: isMobile ? 'column' : 'row',
+          alignItems: isMobile ? 'flex-start' : 'center',
+          justifyContent: 'space-between',
+          gap: 12,
         }}>
           <div>
             <p className="brut-label" style={{ marginBottom: 4 }}>MAJORITY REACHED</p>
@@ -470,7 +634,7 @@ export default function ResultsPage() {
             onClick={() => lockDestination.mutate(leadingDest.id)}
             disabled={lockDestination.isPending}
             className="brut-btn-primary"
-            style={{ fontSize: 11, padding: '9px 18px', flexShrink: 0 }}
+            style={{ fontSize: 11, padding: '9px 18px', flexShrink: 0, ...(isMobile && { width: '100%', justifyContent: 'center' }) }}
           >
             {lockDestination.isPending ? 'LOCKING…' : "LOCK IT IN"}
           </button>
@@ -478,7 +642,7 @@ export default function ResultsPage() {
       )}
 
       {/* Destination cards */}
-      <section style={{ padding: '24px 32px', borderBottom: '2.5px solid var(--color-ink)' }}>
+      <section style={{ padding: '24px var(--section-px)', borderBottom: '2.5px solid var(--color-ink)' }}>
         <div className="flex flex-col gap-4">
           {destinations.map((dest, i) => (
             <DestinationCard
@@ -533,7 +697,7 @@ export default function ResultsPage() {
 
       {/* Vote tally — scoped to active run */}
       {runVotes.length > 0 && (
-        <section style={{ padding: '24px 32px', borderBottom: '2.5px solid var(--color-ink)' }}>
+        <section style={{ padding: '24px var(--section-px)', borderBottom: '2.5px solid var(--color-ink)' }}>
           <p className="brut-label" style={{ marginBottom: 16 }}>
             GROUP VOTES · {runVotes.length} OF {members.length} CAST
           </p>
@@ -573,7 +737,7 @@ export default function ResultsPage() {
       {/* Footer */}
       <footer style={{
         borderTop: '2.5px solid var(--color-ink)',
-        padding: '16px 32px',
+        padding: '16px var(--section-px)',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
       }}>
         <span style={{ fontFamily: 'var(--font-display)', fontSize: 14, fontWeight: 600, color: 'var(--color-ink)' }}>
@@ -801,7 +965,7 @@ function FlightCard({ result, destinationIata }: { result: FlightResult; destina
             </span>
           </div>
         ) : (
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3" style={{ flexWrap: 'wrap', rowGap: 4 }}>
             {outDate && retDate && (
               <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--color-ink-3)' }}>
                 {outDate} – {retDate}
@@ -860,6 +1024,163 @@ function FlightCard({ result, destinationIata }: { result: FlightResult; destina
   )
 }
 
+/* ─── Hotel card ──────────────────────────────────────────────────────────── */
+
+function HotelCard({ hotel }: { hotel: HotelResult }) {
+  const price = hotel.price_per_night != null
+    ? new Intl.NumberFormat('en-US', { style: 'currency', currency: hotel.currency ?? 'USD', maximumFractionDigits: 0 }).format(hotel.price_per_night)
+    : null
+
+  const hotelStars = hotel.hotel_class != null
+    ? '★'.repeat(hotel.hotel_class) + '☆'.repeat(Math.max(0, 5 - hotel.hotel_class))
+    : null
+
+  const propertyLabel = hotel.property_type ?? 'Hotel'
+
+  return (
+    <div style={{
+      border: '2.5px solid var(--color-ink)',
+      background: 'var(--color-bg)',
+      display: 'flex', alignItems: 'center', gap: 14,
+      padding: '14px 18px',
+    }}>
+      {hotel.thumbnail && (
+        <img
+          src={hotel.thumbnail}
+          alt={hotel.name}
+          style={{ width: 56, height: 56, objectFit: 'cover', border: '2px solid var(--color-ink)', flexShrink: 0 }}
+        />
+      )}
+
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <p style={{
+          fontFamily: 'var(--font-display)', fontSize: 14, fontWeight: 600,
+          color: 'var(--color-ink)', letterSpacing: '-0.2px',
+          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+          marginBottom: 4,
+        }}>
+          {hotel.name}
+        </p>
+        <div className="flex items-center gap-2" style={{ flexWrap: 'wrap', rowGap: 3 }}>
+          <span style={{
+            fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: '0.08em', textTransform: 'uppercase',
+            color: 'var(--color-bg)', background: 'var(--color-ink)',
+            padding: '1px 5px',
+          }}>
+            {propertyLabel}
+          </span>
+          {hotelStars && (
+            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--color-accent)', letterSpacing: '1px' }}>
+              {hotelStars}
+            </span>
+          )}
+          {hotel.rating != null && (
+            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--color-ink-2)' }}>
+              <Star size={9} style={{ color: 'var(--color-ink-2)', fill: 'var(--color-ink-2)', display: 'inline', verticalAlign: 'middle', marginRight: 2 }} />
+              {hotel.rating.toFixed(1)} Google
+            </span>
+          )}
+        </div>
+      </div>
+
+      <div style={{ flexShrink: 0, textAlign: 'right', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6 }}>
+        {price && (
+          <div>
+            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 14, fontWeight: 700, color: 'var(--color-ink)' }}>
+              {price}
+            </span>
+            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--color-ink-3)', marginLeft: 3 }}>
+              /night
+            </span>
+          </div>
+        )}
+        <a
+          href={hotel.booking_link ?? `https://www.google.com/maps/search/${encodeURIComponent(hotel.name)}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{
+            fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase',
+            color: 'var(--color-bg)', background: 'var(--color-ink)',
+            border: '2px solid var(--color-ink)',
+            padding: '3px 8px',
+            textDecoration: 'none',
+            whiteSpace: 'nowrap',
+          }}
+          onMouseEnter={e => { e.currentTarget.style.background = 'var(--color-accent)'; e.currentTarget.style.borderColor = 'var(--color-accent)' }}
+          onMouseLeave={e => { e.currentTarget.style.background = 'var(--color-ink)'; e.currentTarget.style.borderColor = 'var(--color-ink)' }}
+        >
+          VIEW →
+        </a>
+      </div>
+    </div>
+  )
+}
+
+/* ─── Activity card ───────────────────────────────────────────────────────── */
+
+const CATEGORY_COLORS: Record<string, string> = {
+  'Food & Drink':  '#D4522A',
+  'Culture':       '#1a1a1a',
+  'Adventure':     '#2E7D32',
+  'Nature':        '#1B5E20',
+  'Nightlife':     '#4A148C',
+  'Wellness':      '#00695C',
+  'Shopping':      '#E65100',
+  'Day Trip':      '#1565C0',
+}
+
+function ActivityCard({ activity }: { activity: Activity }) {
+  const accent = CATEGORY_COLORS[activity.category] ?? 'var(--color-ink)'
+
+  return (
+    <div style={{
+      border: '2.5px solid var(--color-ink)',
+      background: 'var(--color-bg)',
+      display: 'flex', flexDirection: 'column',
+    }}>
+      <div style={{
+        padding: '8px 14px',
+        borderBottom: '2.5px solid var(--color-ink)',
+        background: accent,
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+      }}>
+        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: '0.12em', color: '#fff', textTransform: 'uppercase' }}>
+          {activity.category}
+        </span>
+      </div>
+      <div style={{ padding: '14px', flex: 1 }}>
+        <p style={{
+          fontFamily: 'var(--font-display)', fontSize: 14, fontWeight: 600,
+          color: 'var(--color-ink)', letterSpacing: '-0.2px', marginBottom: 6,
+        }}>
+          {activity.name}
+        </p>
+        <p style={{
+          fontFamily: 'var(--font-body)', fontSize: 12, color: 'var(--color-ink-2)',
+          lineHeight: 1.65, marginBottom: 12,
+        }}>
+          {activity.description}
+        </p>
+        <a
+          href={activity.link}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-1"
+          style={{
+            fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase',
+            color: 'var(--color-ink)', textDecoration: 'none',
+          }}
+          onMouseEnter={e => { e.currentTarget.style.color = 'var(--color-accent)' }}
+          onMouseLeave={e => { e.currentTarget.style.color = 'var(--color-ink)' }}
+        >
+          <ExternalLink size={9} />
+          FIND ON MAPS
+        </a>
+      </div>
+    </div>
+  )
+}
+
 /* ─── Generating screen ───────────────────────────────────────────────────── */
 
 const GENERATING_PHRASES = [
@@ -882,7 +1203,7 @@ function GeneratingScreen({ tripName }: { tripName?: string }) {
   return (
     <DocContainer>
       <nav style={{
-        padding: '20px 32px',
+        padding: '20px var(--section-px)',
         borderBottom: '2.5px solid var(--color-ink)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
       }}>

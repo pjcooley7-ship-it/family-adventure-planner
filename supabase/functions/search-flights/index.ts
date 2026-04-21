@@ -121,30 +121,41 @@ Deno.serve(async (req) => {
     if (prefsErr) throw prefsErr
     if (!prefs || prefs.length === 0) throw new Error('No preferences found')
 
-    // ── Search SerpAPI for each member ───────────────────────────────────────
+    // ── Search SerpAPI for each member (try all airports, keep cheapest) ─────
     const results = []
 
     for (const pref of prefs) {
-      const originIata = Array.isArray(pref.origin_airports) && pref.origin_airports.length > 0
-        ? pref.origin_airports[0]
-        : null
+      const airports: string[] = Array.isArray(pref.origin_airports) && pref.origin_airports.length > 0
+        ? pref.origin_airports
+        : []
 
-      // Skip members with no airport or no dates
-      if (!originIata || !pref.earliest_departure || !pref.latest_return) {
+      if (airports.length === 0 || !pref.earliest_departure || !pref.latest_return) {
         results.push({
           trip_id:          tripId,
           destination_id:   dest.id,
           user_id:          pref.user_id,
           traveler_name:    pref.traveler_name,
-          origin_iata:      originIata ?? 'N/A',
-          error_message:    !originIata
+          origin_iata:      airports[0] ?? 'N/A',
+          error_message:    airports.length === 0
             ? 'No origin airport set'
             : 'No travel dates set — update preferences to see flights',
         })
         continue
       }
 
-      try {
+      // Search all airports in parallel, pick cheapest across all
+      interface CandidateResult {
+        origin_iata: string
+        price: number
+        airline: string | null
+        airline_logo: string | null
+        duration_minutes: number | null
+        stops: number
+        booking_token: string | null
+      }
+      const candidates: CandidateResult[] = []
+
+      await Promise.allSettled(airports.map(async (originIata) => {
         const params = new URLSearchParams({
           engine:        'google_flights',
           departure_id:  originIata,
@@ -154,70 +165,68 @@ Deno.serve(async (req) => {
           adults:        String(pref.adults ?? 1),
           currency:      pref.currency ?? 'USD',
           hl:            'en',
-          type:          '1', // round trip
+          type:          '1',
           api_key:       serpApiKey,
         })
-
         const serpRes = await fetch(`https://serpapi.com/search.json?${params}`)
         const serpData = await serpRes.json() as SerpResponse
+        if (serpData.error) throw new Error(serpData.error)
 
-        if (serpData.error) {
-          throw new Error(serpData.error)
-        }
-
-        // Combine best + other, sort by price, pick cheapest
         const allOptions: SerpFlightOption[] = [
           ...(serpData.best_flights ?? []),
           ...(serpData.other_flights ?? []),
         ].filter(o => typeof o.price === 'number')
 
-        if (allOptions.length === 0) {
-          results.push({
-            trip_id:        tripId,
-            destination_id: dest.id,
-            user_id:        pref.user_id,
-            traveler_name:  pref.traveler_name,
-            origin_iata:    originIata,
-            outbound_date:  pref.earliest_departure,
-            return_date:    pref.latest_return,
-            error_message:  'No flights found for these dates',
+        if (allOptions.length > 0) {
+          allOptions.sort((a, b) => a.price - b.price)
+          const cheapest = allOptions[0]
+          const firstLeg = cheapest.flights[0]
+          candidates.push({
+            origin_iata:      originIata,
+            price:            cheapest.price,
+            airline:          firstLeg?.airline ?? null,
+            airline_logo:     firstLeg?.airline_logo ?? null,
+            duration_minutes: cheapest.total_duration ?? null,
+            stops:            Math.max(0, cheapest.flights.length - 1),
+            booking_token:    cheapest.booking_token ?? null,
           })
-          continue
         }
+      }))
 
-        allOptions.sort((a, b) => a.price - b.price)
-        const cheapest = allOptions[0]
-        const firstLeg = cheapest.flights[0]
-
-        results.push({
-          trip_id:          tripId,
-          destination_id:   dest.id,
-          user_id:          pref.user_id,
-          traveler_name:    pref.traveler_name,
-          origin_iata:      originIata,
-          price:            cheapest.price,
-          currency:         pref.currency ?? 'USD',
-          airline:          firstLeg?.airline ?? null,
-          airline_logo:     firstLeg?.airline_logo ?? null,
-          outbound_date:    pref.earliest_departure,
-          return_date:      pref.latest_return,
-          duration_minutes: cheapest.total_duration ?? null,
-          stops:            Math.max(0, cheapest.flights.length - 1),
-          booking_token:    cheapest.booking_token ?? null,
-          error_message:    null,
-        })
-      } catch (err) {
-        const msg = err instanceof Error ? err.message : 'Search failed'
-        console.error(`[search-flights] error for ${pref.traveler_name}:`, msg)
+      if (candidates.length === 0) {
         results.push({
           trip_id:        tripId,
           destination_id: dest.id,
           user_id:        pref.user_id,
           traveler_name:  pref.traveler_name,
-          origin_iata:    originIata,
-          error_message:  msg,
+          origin_iata:    airports[0],
+          outbound_date:  pref.earliest_departure,
+          return_date:    pref.latest_return,
+          error_message:  'No flights found for these dates',
         })
+        continue
       }
+
+      candidates.sort((a, b) => a.price - b.price)
+      const best = candidates[0]
+
+      results.push({
+        trip_id:          tripId,
+        destination_id:   dest.id,
+        user_id:          pref.user_id,
+        traveler_name:    pref.traveler_name,
+        origin_iata:      best.origin_iata,
+        price:            best.price,
+        currency:         pref.currency ?? 'USD',
+        airline:          best.airline,
+        airline_logo:     best.airline_logo,
+        outbound_date:    pref.earliest_departure,
+        return_date:      pref.latest_return,
+        duration_minutes: best.duration_minutes,
+        stops:            best.stops,
+        booking_token:    best.booking_token,
+        error_message:    null,
+      })
     }
 
     // ── Upsert all results ───────────────────────────────────────────────────
