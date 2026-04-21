@@ -35,7 +35,7 @@ export default function TripPage() {
   if (tripLoading) {
     return (
       <DocContainer>
-        <div style={{ padding: '80px 32px', textAlign: 'center' }}>
+        <div style={{ padding: '80px var(--section-px)', textAlign: 'center' }}>
           <p style={{ fontFamily: 'var(--font-mono)', fontSize: 11, letterSpacing: '0.15em', color: 'var(--color-ink-3)' }}>
             LOADING…
           </p>
@@ -47,7 +47,7 @@ export default function TripPage() {
   if (!trip) {
     return (
       <DocContainer>
-        <div style={{ padding: '80px 32px', textAlign: 'center' }}>
+        <div style={{ padding: '80px var(--section-px)', textAlign: 'center' }}>
           <p style={{ fontFamily: 'var(--font-display)', fontSize: '1.6rem', fontWeight: 600, color: 'var(--color-ink)', marginBottom: 16 }}>
             Trip not found
           </p>
@@ -70,7 +70,7 @@ export default function TripPage() {
 
       {/* Nav */}
       <nav style={{
-        padding: '20px 32px',
+        padding: '20px var(--section-px)',
         borderBottom: '2.5px solid var(--color-ink)',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
       }}>
@@ -100,7 +100,7 @@ export default function TripPage() {
       </nav>
 
       {/* Trip header */}
-      <section style={{ padding: '32px 32px 24px', borderBottom: '2.5px solid var(--color-ink)' }}>
+      <section style={{ padding: '32px var(--section-px) 24px', borderBottom: '2.5px solid var(--color-ink)' }}>
         <p className="brut-label animate-fade-up" style={{ marginBottom: 8 }}>
           TRIP · {trip.code}
         </p>
@@ -124,12 +124,12 @@ export default function TripPage() {
       </section>
 
       {/* Your action */}
-      <section style={{ padding: '24px 32px', borderBottom: '2.5px solid var(--color-ink)' }}>
+      <section style={{ padding: '24px var(--section-px)', borderBottom: '2.5px solid var(--color-ink)' }}>
         <ActionCard tripId={tripId!} navigate={navigate} hasSubmitted={hasSubmitted} />
       </section>
 
       {/* Travel party */}
-      <section style={{ padding: '24px 32px', borderBottom: '2.5px solid var(--color-ink)' }}>
+      <section style={{ padding: '24px var(--section-px)', borderBottom: '2.5px solid var(--color-ink)' }}>
         <p className="brut-label" style={{ marginBottom: 14 }}>TRAVEL PARTY</p>
         {members.length === 0 ? (
           <p style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: 'var(--color-ink-2)' }}>
@@ -154,7 +154,7 @@ export default function TripPage() {
       </section>
 
       {/* Invite */}
-      <section style={{ padding: '24px 32px', borderBottom: '2.5px solid var(--color-ink)' }}>
+      <section style={{ padding: '24px var(--section-px)', borderBottom: '2.5px solid var(--color-ink)' }}>
         <p className="brut-label" style={{ marginBottom: 12 }}>INVITE YOUR PARTY</p>
         <p style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: 'var(--color-ink-2)', marginBottom: 16, lineHeight: 1.6 }}>
           Share this code with everyone joining the trip.
@@ -209,7 +209,7 @@ export default function TripPage() {
 
       {/* Submission progress */}
       {members.length > 0 && (
-        <section style={{ padding: '24px 32px', borderBottom: '2.5px solid var(--color-ink)' }}>
+        <section style={{ padding: '24px var(--section-px)', borderBottom: '2.5px solid var(--color-ink)' }}>
           <p className="brut-label" style={{ marginBottom: 12 }}>SUBMISSION PROGRESS</p>
           <div style={{ height: 5, background: 'var(--border-soft)', marginBottom: 8 }}>
             <div style={{
@@ -242,7 +242,7 @@ export default function TripPage() {
 
       {/* Find destinations CTA */}
       {enoughToMatch && (
-        <section style={{ padding: '24px 32px', borderBottom: '2.5px solid var(--color-ink)' }}>
+        <section style={{ padding: '24px var(--section-px)', borderBottom: '2.5px solid var(--color-ink)' }}>
           <button
             onClick={() => navigate(`/trip/${tripId}/results`)}
             className="brut-btn-primary"
@@ -257,7 +257,7 @@ export default function TripPage() {
       {/* Footer */}
       <footer style={{
         borderTop: '2.5px solid var(--color-ink)',
-        padding: '16px 32px',
+        padding: '16px var(--section-px)',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
       }}>
         <span style={{ fontFamily: 'var(--font-display)', fontSize: 14, fontWeight: 600, color: 'var(--color-ink)' }}>

@@ -105,6 +105,22 @@ Order from best match to worst.`,
       }],
     })
 
+    // ── Log usage (fire-and-forget, never blocks the main path) ─────────────
+    const logUsageUrl = `${supabaseUrl}/functions/v1/log-usage`
+    fetch(logUsageUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        project:               'wanderlust',
+        function_name:         'find-destinations',
+        model:                 message.model,
+        input_tokens:          message.usage.input_tokens,
+        output_tokens:         message.usage.output_tokens,
+        cache_creation_tokens: message.usage.cache_creation_input_tokens ?? 0,
+        cache_read_tokens:     message.usage.cache_read_input_tokens ?? 0,
+      }),
+    }).catch(() => {}) // swallow errors — logging must never break the main response
+
     // ── Parse response ───────────────────────────────────────────────────────
     const raw = message.content[0].type === 'text' ? message.content[0].text.trim() : ''
     const jsonStr = raw.replace(/^```(?:json)?\n?/m, '').replace(/\n?```$/m, '').trim()

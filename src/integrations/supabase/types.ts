@@ -198,6 +198,82 @@ export type Database = {
           },
         ]
       }
+      hotel_results: {
+        Row: {
+          booking_link: string | null
+          check_in_date: string | null
+          check_out_date: string | null
+          currency: string | null
+          destination_id: string
+          fetched_at: string
+          hotel_class: number | null
+          id: string
+          name: string
+          position: number
+          price_per_night: number | null
+          property_type: string | null
+          rating: number | null
+          thumbnail: string | null
+          trip_id: string
+        }
+        Insert: {
+          booking_link?: string | null
+          check_in_date?: string | null
+          check_out_date?: string | null
+          currency?: string | null
+          destination_id: string
+          fetched_at?: string
+          hotel_class?: number | null
+          id?: string
+          name: string
+          position: number
+          price_per_night?: number | null
+          property_type?: string | null
+          rating?: number | null
+          thumbnail?: string | null
+          trip_id: string
+        }
+        Update: {
+          booking_link?: string | null
+          check_in_date?: string | null
+          check_out_date?: string | null
+          currency?: string | null
+          destination_id?: string
+          fetched_at?: string
+          hotel_class?: number | null
+          id?: string
+          name?: string
+          position?: number
+          price_per_night?: number | null
+          property_type?: string | null
+          rating?: number | null
+          thumbnail?: string | null
+          trip_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hotel_results_destination_id_fkey"
+            columns: ["destination_id"]
+            isOneToOne: false
+            referencedRelation: "destinations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hotel_results_trip_id_fkey"
+            columns: ["trip_id"]
+            isOneToOne: false
+            referencedRelation: "trip_summary"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hotel_results_trip_id_fkey"
+            columns: ["trip_id"]
+            isOneToOne: false
+            referencedRelation: "trips"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       preferences: {
         Row: {
           accommodation_types: string[]
@@ -600,11 +676,12 @@ export const Constants = {
 } as const
 
 // ── Convenience row-type aliases ──────────────────────────────────────────────
-export type Trip        = Tables<'trips'>
-export type TripMember  = Tables<'trip_members'>
-export type Destination = Tables<'destinations'>
+export type Trip         = Tables<'trips'>
+export type TripMember   = Tables<'trip_members'>
+export type Destination  = Tables<'destinations'>
 export type FlightResult = Tables<'flight_results'>
-export type Preference  = Tables<'preferences'>
-export type Vote        = Tables<'votes'>
+export type HotelResult  = Tables<'hotel_results'>
+export type Preference   = Tables<'preferences'>
+export type Vote         = Tables<'votes'>
 
 export type TripStatus = 'collecting' | 'matching' | 'matched' | 'decided'

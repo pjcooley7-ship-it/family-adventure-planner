@@ -11,6 +11,7 @@ export function DocContainer({ children }: DocContainerProps) {
   return (
     <div style={{ minHeight: '100vh', background: 'var(--color-surface)' }}>
       <div
+        className="doc-inner"
         style={{
           maxWidth: 720,
           margin: '0 auto',

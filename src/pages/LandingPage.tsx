@@ -44,7 +44,7 @@ export default function LandingPage() {
 
         {/* Nav */}
         <nav style={{
-          padding: '20px 32px',
+          padding: '20px var(--section-px)',
           borderBottom: '2.5px solid var(--color-ink)',
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         }}>
@@ -80,7 +80,7 @@ export default function LandingPage() {
         </nav>
 
         {/* Hero */}
-        <section style={{ padding: '48px 32px 40px', borderBottom: '2.5px solid var(--color-ink)' }}>
+        <section style={{ padding: '48px var(--section-px) 40px', borderBottom: '2.5px solid var(--color-ink)' }}>
           <p className="brut-label animate-fade-up" style={{ marginBottom: 14 }}>
             GROUP TRIP PLANNER
           </p>
@@ -151,7 +151,7 @@ export default function LandingPage() {
 
         {/* My Trips */}
         {user && myTrips.length > 0 && (
-          <section style={{ padding: '28px 32px', borderBottom: '2.5px solid var(--color-ink)' }}>
+          <section style={{ padding: '28px var(--section-px)', borderBottom: '2.5px solid var(--color-ink)' }}>
             <p className="brut-label" style={{ marginBottom: 12 }}>YOUR TRIPS</p>
             <div className="flex flex-col gap-2">
               {myTrips.map((trip, i) => (
@@ -167,7 +167,7 @@ export default function LandingPage() {
         )}
 
         {/* How it works */}
-        <section style={{ padding: '36px 32px' }}>
+        <section style={{ padding: '36px var(--section-px)' }}>
           <p className="brut-label" style={{ marginBottom: 20 }}>HOW IT WORKS</p>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 8 }}>
             {[
@@ -201,7 +201,7 @@ export default function LandingPage() {
         {/* Footer */}
         <footer style={{
           borderTop: '2.5px solid var(--color-ink)',
-          padding: '16px 32px',
+          padding: '16px var(--section-px)',
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         }}>
           <span style={{ fontFamily: 'var(--font-display)', fontSize: 14, fontWeight: 600, color: 'var(--color-ink)' }}>

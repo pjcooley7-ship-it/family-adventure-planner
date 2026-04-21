@@ -256,3 +256,21 @@ html {
   border: 2.5px solid var(--color-ink);
   animation: spin 700ms linear infinite;
 }
+
+/* ── Mobile responsiveness ────────────────────────────────────────────────── */
+
+:root {
+  --section-px: 32px;
+}
+
+@media (max-width: 640px) {
+  :root {
+    --section-px: 16px;
+  }
+
+  /* Document fills full viewport width — remove side borders */
+  .doc-inner {
+    border-left: none !important;
+    border-right: none !important;
+  }
+}
