@@ -1,0 +1,8 @@
+{
+  "port": 5174,
+  "routes": [
+    { "path": "/", "name": "landing" },
+    { "path": "/auth", "name": "auth" },
+    { "path": "/join/WNDR42", "name": "join" }
+  ]
+}

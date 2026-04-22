@@ -5,9 +5,16 @@ import { CreateTripModal } from '@/components/CreateTripModal'
 import { DocContainer } from '@/components/DocContainer'
 import { useAuth } from '@/hooks/useAuth'
 import { useMyTrips } from '@/hooks/useTrip'
-import { ArrowRight, Globe, Users, Sparkles } from 'lucide-react'
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Trip = any
+
+function Wordmark() {
+  return (
+    <span style={{ fontFamily: 'var(--f-display)', fontSize: 17, fontWeight: 500, letterSpacing: '-0.02em', color: 'var(--ink)' }}>
+      wanderlust<span style={{ color: 'var(--coral)' }}>.</span>
+    </span>
+  )
+}
 
 export default function LandingPage() {
   const navigate = useNavigate()
@@ -44,170 +51,103 @@ export default function LandingPage() {
 
         {/* Nav */}
         <nav style={{
-          padding: '20px var(--section-px)',
-          borderBottom: '2.5px solid var(--color-ink)',
+          padding: '18px 24px',
+          borderBottom: '1px solid var(--hairline)',
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          background: 'var(--paper)',
         }}>
-          <span style={{ fontFamily: 'var(--font-display)', fontSize: 18, fontWeight: 600, color: 'var(--color-ink)', letterSpacing: '-0.3px' }}>
-            Wanderlust
-          </span>
-          <div className="flex items-center gap-3">
+          <Wordmark />
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             {user ? (
-              <button
-                onClick={handleSignOut}
-                style={{
-                  fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase',
-                  color: 'var(--color-ink-2)', background: 'none', border: 'none', cursor: 'pointer',
-                }}
-              >
-                SIGN OUT
-              </button>
+              <button className="btn-text" onClick={handleSignOut}>SIGN OUT</button>
             ) : (
-              <button
-                onClick={() => navigate('/auth')}
-                style={{
-                  fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase',
-                  color: 'var(--color-ink-2)', background: 'none', border: 'none', cursor: 'pointer',
-                }}
-              >
-                SIGN IN
-              </button>
+              <button className="btn-text" onClick={() => navigate('/auth')}>SIGN IN</button>
             )}
-            <button onClick={handleCreate} className="brut-btn-ghost" style={{ padding: '8px 14px' }}>
+            <button
+              className="btn-ghost"
+              style={{ padding: '7px 14px', fontSize: 12 }}
+              onClick={handleCreate}
+            >
               CREATE TRIP
             </button>
           </div>
         </nav>
 
         {/* Hero */}
-        <section style={{ padding: '48px var(--section-px) 40px', borderBottom: '2.5px solid var(--color-ink)' }}>
-          <p className="brut-label animate-fade-up" style={{ marginBottom: 14 }}>
-            GROUP TRIP PLANNER
-          </p>
-          <h1
-            className="animate-fade-up delay-100"
-            style={{
-              fontFamily: 'var(--font-display)',
-              fontSize: 'clamp(2.2rem, 7vw, 3.2rem)',
-              fontWeight: 600,
-              color: 'var(--color-ink)',
-              letterSpacing: '-0.7px',
-              lineHeight: 1.1,
-              marginBottom: 16,
-            }}
-          >
-            Where should we<br />all meet?
+        <section style={{ padding: '40px 28px 32px' }}>
+          <p className="eyebrow animate-fade-up" style={{ marginBottom: 18 }}>GROUP TRIP PLANNER</p>
+          <h1 className="display animate-fade-up delay-100" style={{ fontSize: 'clamp(2.6rem, 8vw, 3.2rem)', marginBottom: 18, color: 'var(--ink)' }}>
+            Where should<br />we all <em style={{ fontStyle: 'italic', color: 'var(--coral)' }}>meet?</em>
           </h1>
-          <p
-            className="animate-fade-up delay-200"
-            style={{
-              fontFamily: 'var(--font-body)', fontSize: 15, fontWeight: 400,
-              color: 'var(--color-ink-2)', lineHeight: 1.65,
-              maxWidth: 480, marginBottom: 28,
-            }}
-          >
-            Everyone submits where they're flying from, what they can spend,
-            and what they love doing. AI finds the destination that works for all of you.
+          <p className="animate-fade-up delay-200" style={{ fontSize: 15, color: 'var(--ink-2)', lineHeight: 1.55, marginBottom: 28, maxWidth: 360 }}>
+            Everyone submits where they're flying from, budget, and what they love doing.
+            AI finds the destination that works for all of you.
           </p>
 
-          {/* CTAs */}
-          <div className="animate-fade-up delay-300 flex flex-col sm:flex-row items-start gap-3">
-            <button onClick={handleCreate} className="brut-btn-primary" style={{ fontSize: 14, padding: '11px 20px' }}>
-              Start a trip <ArrowRight size={15} />
-            </button>
+          {/* Primary CTA */}
+          <button
+            className="btn-primary coral animate-fade-up delay-300"
+            style={{ fontSize: 15, padding: '14px 26px', width: '100%', justifyContent: 'center', marginBottom: 14 }}
+            onClick={handleCreate}
+          >
+            Start a trip →
+          </button>
 
-            <form onSubmit={handleJoin} style={{ display: 'flex' }}>
-              <input
-                value={joinCode}
-                onChange={e => setJoinCode(e.target.value)}
-                placeholder="Enter trip code…"
-                style={{
-                  fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--color-ink)',
-                  background: 'var(--color-bg)', border: '2.5px solid var(--color-ink)', borderRight: 'none',
-                  padding: '11px 14px', outline: 'none', width: 180,
-                  transition: 'box-shadow 150ms ease',
-                }}
-                onFocus={e => { e.currentTarget.style.boxShadow = '4px 4px 0 var(--color-ink)' }}
-                onBlur={e => { e.currentTarget.style.boxShadow = 'none' }}
-              />
-              <button
-                type="submit"
-                className="brut-btn-ghost"
-                style={{ borderLeft: 'none', fontSize: 11, padding: '11px 16px' }}
-              >
-                JOIN
-              </button>
-            </form>
+          {/* Join code — demoted */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '4px 0 16px' }}>
+            <span className="mono" style={{ fontSize: 10, color: 'var(--ink-3)', letterSpacing: '0.1em', whiteSpace: 'nowrap' }}>OR JOIN WITH CODE</span>
+            <div style={{ flex: 1, height: 1, background: 'var(--hairline)' }} />
           </div>
+          <form onSubmit={handleJoin} style={{ display: 'flex', alignItems: 'baseline', gap: 10 }}>
+            <input
+              value={joinCode}
+              onChange={e => setJoinCode(e.target.value.toUpperCase())}
+              placeholder="ABCD12"
+              maxLength={8}
+              style={{
+                flex: 1, background: 'var(--paper)', color: 'var(--ink)',
+                border: 'none', borderBottom: '1.5px solid var(--ink-4)',
+                fontFamily: 'var(--f-mono)', fontSize: 18, letterSpacing: '0.15em',
+                textTransform: 'uppercase', padding: '6px 2px', outline: 'none',
+                transition: 'border-color 160ms',
+              }}
+              onFocus={e => { e.currentTarget.style.borderBottomColor = 'var(--ink)' }}
+              onBlur={e => { e.currentTarget.style.borderBottomColor = 'var(--ink-4)' }}
+            />
+            <button type="submit" className="btn-text">JOIN →</button>
+          </form>
         </section>
 
-        {/* Map */}
-        <section
-          className="animate-fade-in delay-500"
-          style={{ background: 'var(--color-surface-2)', borderBottom: '2.5px solid var(--color-ink)', padding: '0' }}
-        >
+        {/* Map band */}
+        <div style={{ borderTop: '1px solid var(--hairline)', position: 'relative', overflow: 'hidden', background: 'var(--paper-3)' }}>
           <FlightPathMap />
-        </section>
+        </div>
 
         {/* My Trips */}
         {user && myTrips.length > 0 && (
-          <section style={{ padding: '28px var(--section-px)', borderBottom: '2.5px solid var(--color-ink)' }}>
-            <p className="brut-label" style={{ marginBottom: 12 }}>YOUR TRIPS</p>
-            <div className="flex flex-col gap-2">
+          <section style={{ padding: '28px 28px' }}>
+            <p className="eyebrow" style={{ marginBottom: 12 }}>YOUR TRIPS</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
               {myTrips.map((trip, i) => (
                 <TripRow
                   key={trip.id}
                   trip={trip}
                   onClick={() => navigate(`/trip/${trip.id}`)}
-                  delay={i * 100}
+                  delay={i * 80}
                 />
               ))}
             </div>
           </section>
         )}
 
-        {/* How it works */}
-        <section style={{ padding: '36px var(--section-px)' }}>
-          <p className="brut-label" style={{ marginBottom: 20 }}>HOW IT WORKS</p>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 8 }}>
-            {[
-              { icon: <Globe size={18} />, step: '01', title: 'Create a trip', body: "Start a group trip and share the invite code with your travel party." },
-              { icon: <Users size={18} />, step: '02', title: 'Everyone submits', body: "Each person shares their origin city, dates, budget, and activity preferences." },
-              { icon: <Sparkles size={18} />, step: '03', title: 'AI finds the match', body: "We analyze all submissions and surface the best-fit destinations for your group." },
-            ].map(({ icon, step, title, body }, i) => (
-              <div
-                key={step}
-                className="animate-fade-up brut-card"
-                style={{
-                  padding: '20px',
-                  animationDelay: `${i * 100}ms`,
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 14 }}>
-                  <span style={{ color: 'var(--color-ink-2)' }}>{icon}</span>
-                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: 28, fontWeight: 700, color: 'rgba(26,26,26,0.07)', lineHeight: 1 }}>{step}</span>
-                </div>
-                <h3 style={{ fontFamily: 'var(--font-display)', fontSize: 16, fontWeight: 600, color: 'var(--color-ink)', marginBottom: 8, letterSpacing: '-0.2px' }}>
-                  {title}
-                </h3>
-                <p style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: 'var(--color-ink-2)', lineHeight: 1.6 }}>
-                  {body}
-                </p>
-              </div>
-            ))}
-          </div>
-        </section>
-
         {/* Footer */}
         <footer style={{
-          borderTop: '2.5px solid var(--color-ink)',
-          padding: '16px var(--section-px)',
+          borderTop: '1px solid var(--hairline)',
+          padding: '16px 28px',
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         }}>
-          <span style={{ fontFamily: 'var(--font-display)', fontSize: 14, fontWeight: 600, color: 'var(--color-ink)' }}>
-            Wanderlust
-          </span>
-          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '0.1em', color: 'var(--color-ink-3)', textTransform: 'uppercase' }}>
+          <Wordmark />
+          <span className="mono" style={{ fontSize: 9, letterSpacing: '0.12em', color: 'var(--ink-3)', textTransform: 'uppercase' }}>
             Find your common ground
           </span>
         </footer>
@@ -229,22 +169,26 @@ function TripRow({ trip, onClick, delay }: { trip: Trip; onClick: () => void; de
   return (
     <button
       onClick={onClick}
-      className="flex items-center justify-between px-4 py-3 w-full text-left brut-card"
       style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        padding: '12px 16px', width: '100%', textAlign: 'left', cursor: 'pointer',
+        background: 'var(--paper)', border: '1.5px solid var(--hairline)', borderRadius: 12,
         animationDelay: `${delay}ms`,
-        cursor: 'pointer',
+        transition: 'border-color 150ms, background 150ms',
       }}
+      onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--ink)'; e.currentTarget.style.background = 'var(--paper-2)' }}
+      onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--hairline)'; e.currentTarget.style.background = 'var(--paper)' }}
     >
       <div>
-        <p style={{ fontFamily: 'var(--font-display)', fontSize: 16, fontWeight: 600, color: 'var(--color-ink)', letterSpacing: '-0.2px' }}>
+        <p style={{ fontFamily: 'var(--f-display)', fontSize: 16, fontWeight: 500, color: 'var(--ink)', letterSpacing: '-0.02em' }}>
           {trip.name}
         </p>
-        <p style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--color-ink-3)', marginTop: 2, letterSpacing: '0.06em' }}>
+        <p className="mono" style={{ fontSize: 10, color: 'var(--ink-3)', marginTop: 2, letterSpacing: '0.08em' }}>
           {trip.code}
         </p>
       </div>
       <span
-        className={trip.status === 'matched' ? 'badge-positive' : 'badge-neutral'}
+        className={trip.status === 'matched' ? 'chip-new green' : 'chip-new'}
         style={{ flexShrink: 0 }}
       >
         {STATUS_LABEL[trip.status] ?? trip.status.toUpperCase()}

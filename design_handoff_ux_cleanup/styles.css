@@ -1,0 +1,145 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   Wanderlust — refined design system
+   Evolution of the current brutalist paper look, with better hierarchy,
+   restraint on borders, proper type scale, and more breathing room.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+:root {
+  /* ── Surface tones (warm paper) ─────────────────────────────────────────── */
+  --paper:          #FFFDF7;
+  --paper-2:        #F7F3EA;   /* subtle page bg */
+  --paper-3:        #EDE8DC;   /* deeper section bg */
+  --ink:            #1A1A1A;
+  --ink-2:          #5A5752;   /* secondary text — warmer, higher contrast */
+  --ink-3:          #8F8A80;   /* tertiary / placeholder */
+  --ink-4:          #C4BFB3;   /* hairline borders */
+  --hairline:       #E6E0D2;   /* internal dividers — softer than before */
+
+  /* ── Accents (kept brand, warmer saturation) ───────────────────────────── */
+  --coral:          #D85A30;
+  --coral-bg:       #FBE9E3;
+  --coral-fg:       #993C1D;
+  --green:          #1D9E75;
+  --green-bg:       #E3F2EC;
+  --green-fg:       #0F6E56;
+  --amber:          #EF9F27;
+  --amber-bg:       #FEF4E2;
+  --amber-fg:       #9A6410;
+  --plum:           #7F77DD;
+
+  /* ── Type ──────────────────────────────────────────────────────────────── */
+  --f-display: 'Fraunces', 'DM Serif Display', Georgia, serif;
+  --f-sans:    'DM Sans', system-ui, sans-serif;
+  --f-mono:    'IBM Plex Mono', 'JetBrains Mono', 'Space Mono', 'Courier New', monospace;
+
+  /* ── Rhythm ────────────────────────────────────────────────────────────── */
+  --s-1: 4px;  --s-2: 8px;  --s-3: 12px; --s-4: 16px;
+  --s-5: 20px; --s-6: 24px; --s-7: 32px; --s-8: 40px;
+  --s-9: 56px; --s-10: 72px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body { background: var(--paper-2); color: var(--ink); font-family: var(--f-sans); -webkit-font-smoothing: antialiased; }
+
+/* ─── Doc container — single heavy border, not on every child ────────────── */
+.doc {
+  background: var(--paper);
+  border: 1.5px solid var(--ink);
+  box-shadow: 6px 6px 0 var(--ink);
+  overflow: hidden;
+}
+
+/* ─── Type helpers ───────────────────────────────────────────────────────── */
+.eyebrow {
+  font-family: var(--f-mono);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+  font-weight: 500;
+}
+.eyebrow-ink { color: var(--ink); }
+.mono { font-family: var(--f-mono); }
+.display {
+  font-family: var(--f-display);
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  line-height: 1.02;
+}
+
+/* ─── Primary button — rounded pill, coral default ───────────────────────── */
+.btn-primary {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: var(--ink); color: var(--paper);
+  border: none; border-radius: 999px;
+  font-family: var(--f-sans); font-size: 14px; font-weight: 500;
+  padding: 12px 22px; cursor: pointer;
+  transition: transform 160ms cubic-bezier(.2,.7,.3,1), background 160ms, box-shadow 160ms;
+}
+.btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(0,0,0,0.15); }
+.btn-primary:active { transform: translateY(0); }
+.btn-primary.coral { background: var(--coral); }
+.btn-primary.coral:hover { background: #c24e28; }
+
+/* ─── Secondary ghost button ─────────────────────────────────────────────── */
+.btn-ghost {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: transparent; color: var(--ink);
+  border: 1.5px solid var(--ink); border-radius: 999px;
+  font-family: var(--f-sans); font-size: 13px; font-weight: 500;
+  padding: 11px 20px; cursor: pointer;
+  transition: background 160ms, color 160ms;
+}
+.btn-ghost:hover { background: var(--ink); color: var(--paper); }
+
+/* ─── Tertiary text link ─────────────────────────────────────────────────── */
+.btn-text {
+  background: none; border: none; padding: 0; cursor: pointer;
+  font-family: var(--f-mono); font-size: 11px; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--ink-2);
+}
+.btn-text:hover { color: var(--ink); }
+
+/* ─── Inputs ─────────────────────────────────────────────────────────────── */
+.input {
+  width: 100%;
+  background: var(--paper); color: var(--ink);
+  border: none; border-bottom: 1.5px solid var(--ink-4);
+  font-family: var(--f-sans); font-size: 16px;
+  padding: 10px 2px; outline: none;
+  transition: border-color 160ms, padding 160ms;
+}
+.input::placeholder { color: var(--ink-3); }
+.input:focus { border-bottom-color: var(--ink); }
+
+/* ─── Chip / pill ────────────────────────────────────────────────────────── */
+.chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-family: var(--f-mono); font-size: 10px;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  padding: 4px 10px; border-radius: 999px;
+  background: var(--paper-3); color: var(--ink-2);
+}
+.chip-green { background: var(--green-bg); color: var(--green-fg); }
+.chip-amber { background: var(--amber-bg); color: var(--amber-fg); }
+.chip-coral { background: var(--coral-bg); color: var(--coral-fg); }
+
+/* ─── Avatar ─────────────────────────────────────────────────────────────── */
+.avatar {
+  width: 36px; height: 36px; border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-family: var(--f-display); font-weight: 500; font-size: 15px;
+  flex-shrink: 0;
+}
+
+/* ─── Hairline divider ───────────────────────────────────────────────────── */
+.rule { border: 0; border-top: 1px solid var(--hairline); }
+
+/* spin */
+@keyframes spinK { to { transform: rotate(360deg); } }
+.spin { animation: spinK 900ms linear infinite; }
+
+/* dot pulse */
+@keyframes pulseK { 0%,100%{opacity:.4} 50%{opacity:1} }
+.pulse { animation: pulseK 1.4s ease-in-out infinite; }

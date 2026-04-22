@@ -1,10 +1,24 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
+import { Loader } from 'lucide-react'
 import { supabase } from '@/integrations/supabase/client'
 import { DocContainer } from '@/components/DocContainer'
 
 type Mode = 'signin' | 'signup'
+
+function Wordmark() {
+  return (
+    <button
+      onClick={() => history.back()}
+      style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+    >
+      <span style={{ fontFamily: 'var(--f-display)', fontSize: 17, fontWeight: 500, letterSpacing: '-0.02em', color: 'var(--ink)' }}>
+        wanderlust<span style={{ color: 'var(--coral)' }}>.</span>
+      </span>
+    </button>
+  )
+}
 
 export default function AuthPage() {
   const navigate = useNavigate()
@@ -38,143 +52,123 @@ export default function AuthPage() {
     }
   }
 
+  const isSignIn = mode === 'signin'
+
   return (
     <DocContainer>
       {/* Nav */}
       <nav style={{
-        padding: '20px 32px',
-        borderBottom: '2.5px solid var(--color-ink)',
+        padding: '18px 24px',
+        borderBottom: '1px solid var(--hairline)',
         display: 'flex', alignItems: 'center',
+        background: 'var(--paper)',
       }}>
-        <button
-          onClick={() => navigate('/')}
-          style={{
-            fontFamily: 'var(--font-display)', fontSize: 18, fontWeight: 600,
-            color: 'var(--color-ink)', background: 'none', border: 'none', cursor: 'pointer',
-            letterSpacing: '-0.3px',
-          }}
-        >
-          Wanderlust
-        </button>
+        <Wordmark />
       </nav>
 
       {/* Content */}
-      <div style={{ padding: '48px 32px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+      <div style={{ padding: '48px 28px 32px' }}>
+        <p className="eyebrow" style={{ marginBottom: 14 }}>
+          {isSignIn ? 'WELCOME BACK' : 'NEW TRAVELER'}
+        </p>
+        <h1 className="display" style={{ fontSize: 40, marginBottom: 8 }}>
+          {isSignIn
+            ? <>Sign <em style={{ fontStyle: 'italic', color: 'var(--coral)' }}>in.</em></>
+            : <>Create <em style={{ fontStyle: 'italic', color: 'var(--coral)' }}>account.</em></>}
+        </h1>
+        <p style={{ fontFamily: 'var(--f-sans)', fontSize: 14, color: 'var(--ink-2)', marginBottom: 36 }}>
+          {isSignIn ? 'Pick up where you left off.' : 'Start planning trips with your people.'}
+        </p>
 
-        {/* Mode tabs */}
-        <div style={{
-          display: 'flex', width: '100%', maxWidth: 400,
-          border: '2.5px solid var(--color-ink)', marginBottom: 32,
-        }}>
-          {(['signin', 'signup'] as Mode[]).map(m => (
-            <button
-              key={m}
-              onClick={() => setMode(m)}
-              style={{
-                flex: 1,
-                fontFamily: 'var(--font-mono)', fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase',
-                color: mode === m ? 'var(--color-bg)' : 'var(--color-ink-2)',
-                background: mode === m ? 'var(--color-ink)' : 'transparent',
-                border: 'none', padding: '10px 0',
-                cursor: 'pointer', transition: 'background 150ms ease, color 150ms ease',
-              }}
-            >
-              {m === 'signin' ? 'Sign In' : 'Create Account'}
-            </button>
-          ))}
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 22 }}>
+          {mode === 'signup' && (
+            <UnderlineField label="YOUR NAME">
+              <input
+                type="text"
+                value={displayName}
+                onChange={e => setDisplayName(e.target.value)}
+                placeholder="e.g. Sarah"
+                required
+                className="input-underline"
+                style={{ fontSize: 17 }}
+              />
+            </UnderlineField>
+          )}
+
+          <UnderlineField label="EMAIL">
+            <input
+              type="email"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              placeholder="you@somewhere.com"
+              required
+              className="input-underline"
+              style={{ fontSize: 17 }}
+            />
+          </UnderlineField>
+
+          <UnderlineField
+            label="PASSWORD"
+            right={isSignIn ? <button type="button" className="btn-text" style={{ fontSize: 10 }}>FORGOT?</button> : undefined}
+          >
+            <input
+              type="password"
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              placeholder={isSignIn ? '••••••••••' : 'Min. 6 characters'}
+              required
+              minLength={6}
+              className="input-underline"
+              style={{ fontSize: 17 }}
+            />
+          </UnderlineField>
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="btn-primary coral"
+            style={{ width: '100%', justifyContent: 'center', padding: '14px', fontSize: 15, marginTop: 10 }}
+          >
+            {loading
+              ? <><Loader size={15} className="spin" /> Please wait…</>
+              : 'Continue →'}
+          </button>
+        </form>
+
+        {/* Divider */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '20px 0' }}>
+          <div style={{ flex: 1, height: 1, background: 'var(--hairline)' }} />
+          <span className="mono" style={{ fontSize: 9, color: 'var(--ink-3)', letterSpacing: '0.2em' }}>OR</span>
+          <div style={{ flex: 1, height: 1, background: 'var(--hairline)' }} />
         </div>
 
-        {/* Form card */}
-        <div
-          style={{ width: '100%', maxWidth: 400 }}
-          className="animate-fade-up"
-        >
-          <h1 style={{
-            fontFamily: 'var(--font-display)', fontSize: '1.8rem', fontWeight: 600,
-            color: 'var(--color-ink)', marginBottom: 4, letterSpacing: '-0.5px',
-          }}>
-            {mode === 'signup' ? 'Create account' : 'Welcome back'}
-          </h1>
-          <p style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: 'var(--color-ink-2)', marginBottom: 28 }}>
-            {mode === 'signup' ? 'Start planning trips with your people.' : 'Sign in to your Wanderlust account.'}
-          </p>
-
-          <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-            {mode === 'signup' && (
-              <Field label="Your name">
-                <input type="text" value={displayName} onChange={e => setDisplayName(e.target.value)}
-                  placeholder="e.g. Sarah" required style={inputStyle}
-                  onFocus={e => { e.currentTarget.style.boxShadow = '4px 4px 0 var(--color-ink)' }}
-                  onBlur={e => { e.currentTarget.style.boxShadow = 'none' }}
-                />
-              </Field>
-            )}
-            <Field label="Email">
-              <input type="email" value={email} onChange={e => setEmail(e.target.value)}
-                placeholder="you@example.com" required style={inputStyle}
-                onFocus={e => { e.currentTarget.style.boxShadow = '4px 4px 0 var(--color-ink)' }}
-                onBlur={e => { e.currentTarget.style.boxShadow = 'none' }}
-              />
-            </Field>
-            <Field label="Password">
-              <input type="password" value={password} onChange={e => setPassword(e.target.value)}
-                placeholder={mode === 'signup' ? 'Min. 6 characters' : '••••••••'}
-                required minLength={6} style={inputStyle}
-                onFocus={e => { e.currentTarget.style.boxShadow = '4px 4px 0 var(--color-ink)' }}
-                onBlur={e => { e.currentTarget.style.boxShadow = 'none' }}
-              />
-            </Field>
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="brut-btn-primary"
-              style={{ marginTop: 4, justifyContent: 'center', width: '100%', fontSize: 14, padding: '13px 16px' }}
-            >
-              {loading ? 'PLEASE WAIT...' : mode === 'signup' ? 'CREATE ACCOUNT' : 'SIGN IN'}
-            </button>
-          </form>
-
-          <p style={{
-            marginTop: 24, fontFamily: 'var(--font-body)', fontSize: 13,
-            color: 'var(--color-ink-2)', textAlign: 'center',
-          }}>
-            {mode === 'signup' ? 'Already have an account?' : "Don't have an account?"}{' '}
-            <button
-              onClick={() => setMode(mode === 'signup' ? 'signin' : 'signup')}
-              style={{
-                fontFamily: 'var(--font-body)', fontSize: 13, fontWeight: 600,
-                color: 'var(--color-ink)', background: 'none', border: 'none',
-                cursor: 'pointer', padding: 0, textDecoration: 'underline',
-                textDecorationThickness: '2px',
-              }}
-            >
-              {mode === 'signup' ? 'Sign in' : 'Create one'}
-            </button>
-          </p>
-        </div>
+        <p style={{ textAlign: 'center', fontSize: 13, color: 'var(--ink-2)', fontFamily: 'var(--f-sans)' }}>
+          {isSignIn ? 'New here?' : 'Already have an account?'}{' '}
+          <button
+            type="button"
+            onClick={() => setMode(isSignIn ? 'signup' : 'signin')}
+            style={{
+              background: 'none', border: 'none', cursor: 'pointer', padding: 0,
+              fontFamily: 'var(--f-sans)', fontSize: 13, fontWeight: 500,
+              color: 'var(--coral)', letterSpacing: 0, textTransform: 'none',
+            }}
+          >
+            {isSignIn ? 'Create account →' : 'Sign in →'}
+          </button>
+        </p>
       </div>
     </DocContainer>
   )
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function UnderlineField({ label, children, right }: { label: string; children: React.ReactNode; right?: React.ReactNode }) {
   return (
-    <div className="flex flex-col gap-1.5">
-      <label style={{
-        fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '0.1em',
-        color: 'var(--color-ink-2)', textTransform: 'uppercase',
-      }}>
-        {label}
-      </label>
+    <div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 8 }}>
+        <p className="eyebrow">{label}</p>
+        {right}
+      </div>
       {children}
     </div>
   )
-}
-
-const inputStyle: React.CSSProperties = {
-  fontFamily: 'var(--font-body)', fontSize: 15,
-  color: 'var(--color-ink)', background: 'var(--color-bg)',
-  border: '2.5px solid var(--color-ink)', padding: '12px 14px',
-  outline: 'none', width: '100%', transition: 'box-shadow 150ms ease',
 }
