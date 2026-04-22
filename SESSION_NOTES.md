@@ -35,14 +35,14 @@ Work through phases in order. Do not skip ahead. Start each session by reading t
 - [ ] **Trip status emails** — invite, "all prefs in", "destination decided"
 - [ ] Activities API integration (GetYourGuide or Viator) — replace AI-generated links with real bookable inventory
 
-### Phase 5 — UX Cleanup Redesign (redesign/ux-cleanup branch)
-Design handoff is in `design_handoff_ux_cleanup/`. Implement screens in this order:
+### Phase 5 — UX Cleanup Redesign ✅ COMPLETE (merged to main 2026-04-22)
+Design handoff is in `design_handoff_ux_cleanup/`. All screens implemented:
 - [x] Tokens + typography (`src/index.css`)
 - [x] Trip Hub (`/trip/:id`) — `TripPage.tsx`
-- [ ] Preferences flow — build `PrefsHeader` + `PrefsFooter` components first, then all 5 steps (`screens-prefs.jsx`)
-- [ ] Landing + Sign In + Create modal + Join (`screens-landing.jsx`, `screens-trip.jsx`)
-- [ ] Results + Decided (`screens-results.jsx`)
-- [ ] Generating loading screen (`screens-results.jsx`)
+- [x] Preferences flow — sticky header + coral progress + 5 steps (`screens-prefs.jsx`)
+- [x] Landing + Sign In + Create modal + Join (`screens-landing.jsx`, `screens-trip.jsx`)
+- [x] Results + Decided (`screens-results.jsx`)
+- [x] Generating loading screen (`screens-results.jsx`)
 
 ### Phase 6 — Community & Trip Intelligence (Long-Term Vision)
 - Trip reviews + destination database
@@ -57,11 +57,11 @@ Collaborative trip planner for groups spread across the world. Each traveler sub
 
 ---
 
-## Current Status (as of 2026-04-21)
+## Current Status (as of 2026-04-22)
 
-**Branch:** `redesign/ux-cleanup` — UX cleanup redesign in progress
+**Branch:** `main` — Phase 5 UX Cleanup Redesign complete and merged
 
-**Working end-to-end (on main / archive/original-design):**
+**Working end-to-end on main:**
 - Full auth flow (Supabase email/password, callback handling)
 - Landing page: hero, FlightPathMap, create/join CTAs, My Trips list
 - Trip dashboard, 5-step preferences form, join flow (already-a-member detection)
@@ -70,13 +70,7 @@ Collaborative trip planner for groups spread across the world. Each traveler sub
 - Flight search (SerpAPI, all airports parallel, cheapest), FlightCard, BOOK → Kayak
 - Hotel search (SerpAPI), activity suggestions (Claude haiku + Google Maps URLs)
 - Mobile-responsive: `--section-px`, DocContainer mobile borders
-
-**Redesign branch — done so far:**
-- Design tokens updated: Fraunces + IBM Plex Mono added, `@theme {}` colors updated to new warmer palette, full `:root` shorthand token block added
-- New utility classes: `.btn-primary` / `.coral`, `.btn-ghost`, `.btn-text`, `.input-underline`, `.chip-new`, `.avatar`, `.rule`, `.eyebrow`, `.display`, `.mono`, `.spin`, `.pulse`
-- Old `.brut-*` classes kept intact — other pages not yet touched
-- `TripPage.tsx` fully rebuilt to new design: serif headline, italic coral last word, amber/green action cards, progress pips, avatar rings, nudge buttons with 60s cooldown, rotten-egg card, invite code footer
-- TypeScript clean, `tsc --noEmit` passes
+- **Full paper+serif redesign on all screens**: Fraunces display, IBM Plex Mono, warm palette, pill buttons, hairline dividers, coral CTAs
 
 **Pending deploy (on main):**
 - `search-flights` v2 needs: `brew install supabase/tap/supabase` → `supabase login` → `supabase functions deploy search-flights --project-ref agbrfodytojzcyvnooec`
