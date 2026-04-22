@@ -118,11 +118,11 @@ Collaborative trip planner for groups spread across the world. Each traveler sub
 - [x] **Auth page** — underline inputs, eyebrow + display headline, coral Continue →, inline mode switch
 - [x] **Create trip modal** — rounded shadow card, suggestion chips, underline inputs, coral CTA
 - [x] **Join page** — centered, avatar stack, eyebrow + display headline, underline name input, coral "Join the trip →"
-- [ ] **Results page** — destination cards with coral vote button, leading banner, footer re-run option. Reference: `design_handoff_ux_cleanup/screens-results.jsx`
-- [ ] **Decided screen** — dark ink hero banner, flight list per traveler with BOOK links. Reference: `screens-results.jsx`
-- [ ] **Generating screen** — compass spinner, step checklist with pulse dot. Reference: `screens-results.jsx`
-- [ ] Once all screens migrated: delete all `.brut-*` classes from `src/index.css`
-- [ ] Merge `redesign/ux-cleanup` → `main` and push
+- [x] **Results page** — destination cards with coral vote button, leading banner, footer re-run option. Reference: `design_handoff_ux_cleanup/screens-results.jsx`
+- [x] **Decided screen** — dark ink hero banner, flight list per traveler with BOOK links. Reference: `screens-results.jsx`
+- [x] **Generating screen** — compass spinner, step checklist with pulse dot. Reference: `screens-results.jsx`
+- [x] Once all screens migrated: delete all `.brut-*` classes from `src/index.css`
+- [x] Merge `redesign/ux-cleanup` → `main` and push
 
 ### Phase 4 (on main, after redesign merged)
 - [ ] Deploy `search-flights` v2: `brew install supabase/tap/supabase` → `supabase login` → `supabase functions deploy search-flights --project-ref agbrfodytojzcyvnooec`
@@ -213,3 +213,14 @@ Collaborative trip planner for groups spread across the world. Each traveler sub
 - TypeScript clean (`tsc --noEmit` passes)
 - Snapshot: `v5-prefs-redesign` (landing, auth, join) — ~/ui-snapshots/wanderlust/2026-04-22-v5-prefs-redesign/
 - **Next:** Landing page redesign — reference: `design_handoff_ux_cleanup/screens-landing.jsx`
+
+### 2026-04-22 — Session 14 (Results + Decided + Generating redesign; merge to main)
+- Rebuilt `ResultsPage.tsx` to new design — three states in one file:
+  - Generating: 100px dashed spinning compass circle, step checklist with pulse dot
+  - Results: eyebrow + display headline, avatar tally, run-history pill tabs, DestinationCard (rounded, green leading banner, chip-new vibe tags, coral vote button), majority detection green banner
+  - Decided: dark ink hero banner (✦ LOCKED IN), 52px city name, coral-left-border AI reasoning, per-traveler flights/hotels/activities as rounded cards, amber date-overlap warning
+- Deleted all `.brut-*` classes and `.badge-*` classes from `src/index.css` (none were referenced)
+- Snapshot: `v7-results-redesign` (landing, auth, join) — ~/ui-snapshots/wanderlust/2026-04-22-v7-results-redesign/
+- Committed all redesign work; merged `redesign/ux-cleanup` → `main`; pushed to GitHub
+- **Phase 5 (UX Cleanup Redesign) complete**
+- **Next:** Phase 4 — deploy `search-flights` v2, email notifications (Resend.com)
