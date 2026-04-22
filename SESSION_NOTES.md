@@ -35,7 +35,16 @@ Work through phases in order. Do not skip ahead. Start each session by reading t
 - [ ] **Trip status emails** — invite, "all prefs in", "destination decided"
 - [ ] Activities API integration (GetYourGuide or Viator) — replace AI-generated links with real bookable inventory
 
-### Phase 5 — Community & Trip Intelligence (Long-Term Vision)
+### Phase 5 — UX Cleanup Redesign (redesign/ux-cleanup branch)
+Design handoff is in `design_handoff_ux_cleanup/`. Implement screens in this order:
+- [x] Tokens + typography (`src/index.css`)
+- [x] Trip Hub (`/trip/:id`) — `TripPage.tsx`
+- [ ] Preferences flow — build `PrefsHeader` + `PrefsFooter` components first, then all 5 steps (`screens-prefs.jsx`)
+- [ ] Landing + Sign In + Create modal + Join (`screens-landing.jsx`, `screens-trip.jsx`)
+- [ ] Results + Decided (`screens-results.jsx`)
+- [ ] Generating loading screen (`screens-results.jsx`)
+
+### Phase 6 — Community & Trip Intelligence (Long-Term Vision)
 - Trip reviews + destination database
 - Trip type categorisation (Bachelor/Bachelorette, Family, Friend Group, etc.)
 - Curated trip templates from past trips
@@ -50,44 +59,51 @@ Collaborative trip planner for groups spread across the world. Each traveler sub
 
 ## Current Status (as of 2026-04-21)
 
-**Working end-to-end:**
-- Full auth flow (Supabase email/password, callback handling)
-- Landing page: hero, FlightPathMap, create/join CTAs, My Trips list (gated on auth to fix race condition)
-- Create trip → DB insert → navigate to /trip/:id
-- Trip dashboard: member list, invite code, email invite, progress bar, Find Destinations CTA
-- 5-step preferences form — all wired to Supabase + AirportPicker
-- Join flow: already-a-member detection, sessionStorage handoff for unauthenticated users
-- AI results: Phase 2 cards (vibe tags, best months, flight note, match score), run history tabs, voting, live tally, "None of these" re-run with deduplication
-- "It's decided!" flow: majority detection, creator lock-in, winner banner, dimmed non-winners
-- Flight search: SerpAPI per member, tries **all** member airports (parallel), returns cheapest across all; FlightCard (price, airline logo, duration, stops, error states), 6hr cache, REFRESH button, BOOK → Kayak deep-link
-- Date-overlap warning banner on decided screen when members' travel windows don't overlap
-- Hotel search: SerpAPI google_hotels, property type pill, star rating, Google rating, VIEW with Google Maps fallback
-- Activity suggestions: Claude haiku, Google Maps search URLs (no hallucinated links), FIND ON MAPS button
-- Mobile-responsive: all pages audited, `--section-px` responsive, DocContainer side borders hidden on mobile
+**Branch:** `redesign/ux-cleanup` — UX cleanup redesign in progress
 
-**Pending deploy:**
-- `search-flights` edge function updated (multi-airport support) — needs `supabase functions deploy` to go live. Install Supabase CLI first: `brew install supabase/tap/supabase`
+**Working end-to-end (on main / archive/original-design):**
+- Full auth flow (Supabase email/password, callback handling)
+- Landing page: hero, FlightPathMap, create/join CTAs, My Trips list
+- Trip dashboard, 5-step preferences form, join flow (already-a-member detection)
+- AI results: Phase 2 cards, run history tabs, voting, "None of these" re-run
+- "It's decided!" flow: majority detection, creator lock-in, winner banner
+- Flight search (SerpAPI, all airports parallel, cheapest), FlightCard, BOOK → Kayak
+- Hotel search (SerpAPI), activity suggestions (Claude haiku + Google Maps URLs)
+- Mobile-responsive: `--section-px`, DocContainer mobile borders
+
+**Redesign branch — done so far:**
+- Design tokens updated: Fraunces + IBM Plex Mono added, `@theme {}` colors updated to new warmer palette, full `:root` shorthand token block added
+- New utility classes: `.btn-primary` / `.coral`, `.btn-ghost`, `.btn-text`, `.input-underline`, `.chip-new`, `.avatar`, `.rule`, `.eyebrow`, `.display`, `.mono`, `.spin`, `.pulse`
+- Old `.brut-*` classes kept intact — other pages not yet touched
+- `TripPage.tsx` fully rebuilt to new design: serif headline, italic coral last word, amber/green action cards, progress pips, avatar rings, nudge buttons with 60s cooldown, rotten-egg card, invite code footer
+- TypeScript clean, `tsc --noEmit` passes
+
+**Pending deploy (on main):**
+- `search-flights` v2 needs: `brew install supabase/tap/supabase` → `supabase login` → `supabase functions deploy search-flights --project-ref agbrfodytojzcyvnooec`
 
 **Known issues:**
-- PreferencesPage not yet mobile-audited (low priority — form is mostly single-column)
+- PreferencesPage not yet mobile-audited (low priority)
 
 ---
 
 ## Key Decisions
 - **Stack:** React 18 + TypeScript + Vite 7 (SWC), Tailwind 4 via @tailwindcss/vite, Supabase, TanStack Query 5, React Router 6, Sonner toasts
-- **Design:** Soft Brutalist — DM Sans (display + body), Space Mono (labels/codes), warm paper palette (#FFFDF7 bg, #F5F2EB surface, #1a1a1a ink, #D4522A accent), 2.5px solid borders, flat offset box-shadows, zero border-radius, DocContainer 720px layout
+- **Original design:** Soft Brutalist — DM Sans + Space Mono, 2.5px solid borders, flat offset shadows, zero border-radius, DocContainer 720px. Preserved on `archive/original-design` branch + git tag `v0-original-design`.
+- **New design (redesign/ux-cleanup):** Paper + serif DNA, Fraunces display, IBM Plex Mono labels, hairline dividers (not thick borders), pill buttons, rounded cards, one coral CTA per screen. See `design_handoff_ux_cleanup/README.md` for full spec.
+- **Incremental migration strategy:** New utility classes added alongside `.brut-*` — replace screen by screen, don't do a global find-replace. `.brut-*` classes can be deleted after all screens are migrated.
+- **Avatar colors:** Deterministic hash from member name → fixed palette of 8 pairs. Never hardcode per-member.
 - **Airport data:** Static `airports` npm package, large/medium only, haversine distance, Nominatim geocoding (no API key)
 - **Auth:** Full Supabase email/password, no anonymous flows
 - **AI:** Claude `claude-haiku-4-5-20251001` via Anthropic SDK in Deno edge function
-- **Flight search:** SerpAPI `engine=google_flights` — `SERP_API_KEY` set as Supabase edge function secret; now tries all airports per member in parallel via `Promise.allSettled`, picks cheapest
-- **Booking links:** Kayak deep-link `kayak.com/flights/{FROM}-{TO}/{DEPART}/{RETURN}` — Google Flights URL deep-linking no longer reliably pre-fills
-- **Edge function auth:** `verify_jwt: false` — Supabase runtime rejects ES256 JWTs (new projects default). Auth handled manually via `is_trip_member` RPC
+- **Flight search:** SerpAPI `engine=google_flights`, `SERP_API_KEY` as Supabase edge function secret; all airports parallel via `Promise.allSettled`, picks cheapest
+- **Booking links:** Kayak deep-link `kayak.com/flights/{FROM}-{TO}/{DEPART}/{RETURN}`
+- **Edge function auth:** `verify_jwt: false` — Supabase runtime rejects ES256 JWTs. Auth handled manually via `is_trip_member` RPC
 - **Email:** Resend.com chosen for trip status emails — needs `RESEND_API_KEY` as Supabase secret
-- **Supabase types:** `src/integrations/supabase/types.ts` fully auto-generated. `customTypes.ts` + `supabaseHelpers.ts` deleted (were re-export stubs only)
+- **Supabase types:** `src/integrations/supabase/types.ts` fully auto-generated
 
 ## Supabase Project
 - URL: https://agbrfodytojzcyvnooec.supabase.co
-- Local dev: port 5174; redirect URL = http://localhost:5174/auth/callback
+- Local dev: port 5173 (Vite default — no custom port configured); redirect URL = http://localhost:5174/auth/callback (update if testing auth locally)
 - Migrations applied: 001–009
 - GitHub: https://github.com/pjcooley7-ship-it/family-adventure-planner
 - Lovable: https://global-family-adventures.lovable.app/
@@ -95,12 +111,25 @@ Collaborative trip planner for groups spread across the world. Each traveler sub
 ---
 
 ## Todo
-- [ ] Deploy updated `search-flights` edge function: `brew install supabase/tap/supabase` → `supabase login` → `supabase functions deploy search-flights --project-ref agbrfodytojzcyvnooec`
-- [ ] **Phase 4: Email notifications** — DB trigger on `preferences` insert → when `submitted_count = member_count`, invoke `send-notification` Supabase edge function → Resend.com email to trip creator. Needs `RESEND_API_KEY` secret.
-- [ ] **Phase 4: Trip status emails** — three triggers: (1) invite sent, (2) all prefs submitted, (3) destination decided. All via same `send-notification` edge function pattern.
-- [ ] **Phase 4: Activities API** — replace Claude-generated activity suggestions with GetYourGuide or Viator API results. Pass group interest tags as search query. Show real prices + booking links.
-- [ ] Mobile audit of PreferencesPage (low priority — form is mostly single-column already)
-- [ ] Push to GitHub + redeploy to confirm all uncommitted session changes are live
+
+### Redesign (redesign/ux-cleanup branch) — do these first
+- [x] **Preferences flow** — sticky header + coral progress + 5 steps rebuilt. Reference: `design_handoff_ux_cleanup/screens-prefs.jsx`
+- [x] **Landing page** — eyebrow + display headline, coral CTA, join code demoted, FlightPathMap band, trip rows as rounded cards
+- [x] **Auth page** — underline inputs, eyebrow + display headline, coral Continue →, inline mode switch
+- [x] **Create trip modal** — rounded shadow card, suggestion chips, underline inputs, coral CTA
+- [x] **Join page** — centered, avatar stack, eyebrow + display headline, underline name input, coral "Join the trip →"
+- [ ] **Results page** — destination cards with coral vote button, leading banner, footer re-run option. Reference: `design_handoff_ux_cleanup/screens-results.jsx`
+- [ ] **Decided screen** — dark ink hero banner, flight list per traveler with BOOK links. Reference: `screens-results.jsx`
+- [ ] **Generating screen** — compass spinner, step checklist with pulse dot. Reference: `screens-results.jsx`
+- [ ] Once all screens migrated: delete all `.brut-*` classes from `src/index.css`
+- [ ] Merge `redesign/ux-cleanup` → `main` and push
+
+### Phase 4 (on main, after redesign merged)
+- [ ] Deploy `search-flights` v2: `brew install supabase/tap/supabase` → `supabase login` → `supabase functions deploy search-flights --project-ref agbrfodytojzcyvnooec`
+- [ ] **Email notifications** — Resend.com, `RESEND_API_KEY` secret, `send-notification` edge function, DB trigger when all members submit prefs
+- [ ] **Trip status emails** — invite, "all prefs in", "destination decided"
+- [ ] Activities API (GetYourGuide or Viator) — replace Claude-generated links with real bookable inventory
+- [ ] PreferencesPage mobile audit (low priority)
 
 ---
 
@@ -160,9 +189,27 @@ Collaborative trip planner for groups spread across the world. Each traveler sub
 - Mobile-responsive audit: --section-px, DocContainer, section headers, FlightCard, majority prompt
 
 ### 2026-04-21 — Session 11
-- **Loose ends cleared:**
-  - Deleted `customTypes.ts` + `supabaseHelpers.ts` (were re-export stubs only, no consumers)
-  - `search-flights` v2: now tries all of a member's origin airports in parallel via `Promise.allSettled`, returns cheapest result across all of them (was using index 0 only)
-  - Date-overlap warning banner added to decided screen in ResultsPage: computes max(earliest_departures) vs min(latest_returns); shows amber warning if windows don't overlap
-- Supabase CLI install: `brew install supabase/tap/supabase` (CLI not installed — user needs to run this then deploy search-flights)
-- **Next:** Deploy search-flights, then start Phase 4 email notifications with Resend.com
+- Loose ends: search-flights v2 (all airports parallel), date-overlap warning banner, deleted dead stubs
+- Supabase CLI not installed — user needs `brew install supabase/tap/supabase` before deploying
+
+### Snapshot: v3-pre-ux-cleanup (2026-04-21)
+- Screenshots: ~/ui-snapshots/wanderlust/2026-04-21-v3-pre-ux-cleanup/
+- Git tag: ui-2026-04-21-v3-pre-ux-cleanup
+- Routes: landing, auth, join
+
+### 2026-04-21 — Session 12 (UX Cleanup Redesign)
+- Received design handoff package in `design_handoff_ux_cleanup/` (README, styles.css, 4 screen reference JSX files)
+- Committed Phase 3 loose ends as pre-redesign baseline; tagged `v0-original-design`; created `archive/original-design` branch (for blog before/after screenshots); created `redesign/ux-cleanup` working branch
+- Snapshot taken: `v3-pre-ux-cleanup` (landing, auth, join) — stored at `~/ui-snapshots/wanderlust/2026-04-21-v3-pre-ux-cleanup/`
+- Ported design tokens to `src/index.css`: Fraunces + IBM Plex Mono added to Google Fonts import; `@theme {}` colors updated to warmer palette; full `:root` shorthand token block (`--paper`, `--ink`, `--hairline`, `--f-display`, `--s-1`…`--s-10`, etc.); new utility classes (`.btn-primary`, `.btn-primary.coral`, `.btn-ghost`, `.btn-text`, `.input-underline`, `.chip-new`, `.avatar`, `.rule`, `.eyebrow`, `.display`, `.mono`, `.spin`, `.pulse`); `.brut-*` classes preserved for backward compat
+- Rebuilt `TripPage.tsx` to new design spec: serif Fraunces headline (italic coral last word), amber "Your turn!" / green "You're in!" / green "Everyone's in!" action cards, progress pips, colored avatars with green ring, nudge buttons (60s cooldown), rotten-egg card, invite code footer with COPY + EMAIL ghost buttons
+- TypeScript clean (`tsc --noEmit` passes)
+- **Next:** Start Preferences flow — build `PrefsHeader` + `PrefsFooter` shared components first, then rebuild all 5 steps using `design_handoff_ux_cleanup/screens-prefs.jsx` as reference
+
+### 2026-04-22 — Session 13 (Preferences + AirportPicker redesign)
+- Rebuilt `PreferencesPage.tsx` to new design: sticky header (← BACK | Wordmark | step counter), segmented coral progress bar, eyebrow step label, Fraunces display headline (italic coral last word), sticky coral Continue → footer
+- All 5 steps rebuilt with new tokens: Stepper component (rounded, paper-2 bg), Toggle component (pill, coral active), rounded date inputs, budget preset tiles (Backpack/Midrange/Comfort/Splurge) with live range display + visual bar, activity grid (coral-bg selected), accommodation pills (ink fill selected), notes textarea + summary table
+- Updated `AirportPicker.tsx`: rounded hairline-border rows, checkbox on right, distance + country in subtitle, pill selected-chip, new CSS vars throughout
+- TypeScript clean (`tsc --noEmit` passes)
+- Snapshot: `v5-prefs-redesign` (landing, auth, join) — ~/ui-snapshots/wanderlust/2026-04-22-v5-prefs-redesign/
+- **Next:** Landing page redesign — reference: `design_handoff_ux_cleanup/screens-landing.jsx`

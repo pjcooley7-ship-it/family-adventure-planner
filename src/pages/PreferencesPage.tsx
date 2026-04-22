@@ -1,9 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { toast } from 'sonner'
-import { ArrowLeft, ArrowRight, Check } from 'lucide-react'
-import { StepIndicator } from '@/components/StepIndicator'
-import { FormField, TextInput, Counter, Toggle, Select } from '@/components/FormField'
+import { Loader } from 'lucide-react'
 import { AirportPicker } from '@/components/AirportPicker'
 import { useSubmitPreferences } from '@/hooks/useTripMutations'
 import { useTripMembers, useMyPreferences } from '@/hooks/useTrip'
@@ -17,7 +15,92 @@ import {
   type TravelPreferences,
 } from '@/lib/types'
 
-const STEPS = ['Who', 'When', 'Budget', 'Interests', 'Notes']
+const STEPS = [
+  { label: 'WHO',       headline: 'Where are you',           italic: 'flying from?' },
+  { label: 'WHEN',      headline: 'When do you want to',     italic: 'travel?' },
+  { label: 'BUDGET',    headline: "What's your",             italic: 'budget?' },
+  { label: 'INTERESTS', headline: 'What do you',             italic: 'love doing?' },
+  { label: 'NOTES',     headline: 'Anything else we should', italic: 'know?' },
+]
+
+const BUDGET_PRESETS = [
+  { lbl: 'Backpack', rng: '$300–800',   emoji: '🎒', min: 300,  max: 800   },
+  { lbl: 'Midrange', rng: '$800–2.4k',  emoji: '🏨', min: 800,  max: 2400  },
+  { lbl: 'Comfort',  rng: '$2.4k–5k',   emoji: '🏝', min: 2400, max: 5000  },
+  { lbl: 'Splurge',  rng: '$5k+',        emoji: '🥂', min: 5000, max: 10000 },
+]
+
+function formatBudget(min: number, max: number): string {
+  const f = (n: number) => n >= 1000 ? `$${(n / 1000 % 1 === 0 ? n / 1000 : (n / 1000).toFixed(1))}k` : `$${n}`
+  return `${f(min)} – ${f(max)}`
+}
+
+function Wordmark() {
+  return (
+    <span style={{ fontFamily: 'var(--f-display)', fontSize: 15, fontWeight: 400, color: 'var(--ink)', letterSpacing: '-0.02em' }}>
+      wanderlust<span style={{ color: 'var(--coral)' }}>.</span>
+    </span>
+  )
+}
+
+// ── Stepper (adults / kids / trip duration) ──────────────────────────────────
+function Stepper({ value, onChange, min = 0, max = 99 }: { value: number; onChange: (v: number) => void; min?: number; max?: number }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 10, border: '1px solid var(--hairline)', borderRadius: 10, padding: '6px 10px' }}>
+      <button
+        type="button"
+        onClick={() => onChange(Math.max(min, value - 1))}
+        style={{ width: 28, height: 28, border: 'none', background: 'var(--paper-2)', borderRadius: 6, cursor: 'pointer', fontSize: 16, color: 'var(--ink)', fontFamily: 'var(--f-sans)', lineHeight: 1 }}
+      >−</button>
+      <span style={{ flex: 1, textAlign: 'center', fontSize: 18, fontWeight: 600, fontFamily: 'var(--f-sans)', color: 'var(--ink)' }}>{value}</span>
+      <button
+        type="button"
+        onClick={() => onChange(Math.min(max, value + 1))}
+        style={{ width: 28, height: 28, border: 'none', background: 'var(--paper-2)', borderRadius: 6, cursor: 'pointer', fontSize: 16, color: 'var(--ink)', fontFamily: 'var(--f-sans)', lineHeight: 1 }}
+      >+</button>
+    </div>
+  )
+}
+
+// ── Section label ─────────────────────────────────────────────────────────────
+function Label({ children }: { children: React.ReactNode }) {
+  return (
+    <p className="mono" style={{ fontSize: 10, color: 'var(--ink-3)', letterSpacing: '0.15em', marginBottom: 8 }}>
+      {children}
+    </p>
+  )
+}
+
+// ── Toggle ────────────────────────────────────────────────────────────────────
+function Toggle({ checked, onChange, label }: { checked: boolean; onChange: (v: boolean) => void; label: string }) {
+  return (
+    <button
+      type="button"
+      onClick={() => onChange(!checked)}
+      style={{
+        display: 'flex', alignItems: 'center', gap: 12, background: 'none',
+        border: 'none', cursor: 'pointer', padding: 0, textAlign: 'left',
+      }}
+    >
+      <div style={{
+        width: 40, height: 24, borderRadius: 12,
+        background: checked ? 'var(--coral)' : 'var(--hairline)',
+        position: 'relative', flexShrink: 0,
+        transition: 'background 200ms',
+      }}>
+        <div style={{
+          position: 'absolute', top: 3, left: checked ? 19 : 3,
+          width: 18, height: 18, borderRadius: '50%', background: 'var(--paper)',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
+          transition: 'left 200ms',
+        }} />
+      </div>
+      <span style={{ fontFamily: 'var(--f-sans)', fontSize: 14, color: 'var(--ink-2)', lineHeight: 1.4 }}>{label}</span>
+    </button>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 
 export default function PreferencesPage() {
   const { tripId } = useParams()
@@ -116,103 +199,77 @@ export default function PreferencesPage() {
     }
   }
 
+  const current = STEPS[step]
+
   return (
     <DocContainer>
+      <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
 
-      {/* Nav */}
-      <nav style={{
-        padding: '18px 32px',
-        borderBottom: '2.5px solid var(--color-ink)',
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-      }}>
-        <button
-          onClick={goBack}
-          className="flex items-center gap-2"
-          style={{
-            fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase',
-            color: 'var(--color-ink-2)', background: 'none', border: 'none', cursor: 'pointer',
-          }}
-        >
-          <ArrowLeft size={12} />
-          BACK
-        </button>
-        <span style={{ fontFamily: 'var(--font-display)', fontSize: 16, fontWeight: 600, color: 'var(--color-ink)' }}>
-          Wanderlust
-        </span>
-        <div style={{ width: 60 }} />
-      </nav>
-
-      {/* Form */}
-      <div style={{ padding: '40px 32px' }}>
-
-        {/* Header */}
-        <div style={{ marginBottom: 28 }}>
-          <p className="brut-label" style={{ marginBottom: 8 }}>
-            TRAVEL PREFERENCES
-          </p>
-          <h1 style={{
-            fontFamily: 'var(--font-display)',
-            fontSize: 'clamp(1.5rem, 4vw, 2rem)',
-            fontWeight: 600,
-            color: 'var(--color-ink)',
-            lineHeight: 1.1,
-            letterSpacing: '-0.4px',
-          }}>
-            Tell us about your trip
-          </h1>
+        {/* ── Sticky header ── */}
+        <div style={{ position: 'sticky', top: 0, zIndex: 10, background: 'var(--paper)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 28px' }}>
+            <button className="btn-text" onClick={goBack}>← BACK</button>
+            <Wordmark />
+            <span className="mono" style={{ fontSize: 10, color: 'var(--ink-3)', letterSpacing: '0.1em' }}>
+              {step + 1}/{STEPS.length}
+            </span>
+          </div>
+          <div style={{ display: 'flex', gap: 4, padding: '0 28px 14px' }}>
+            {STEPS.map((_, i) => (
+              <div
+                key={i}
+                style={{
+                  flex: 1, height: 3, borderRadius: 2,
+                  background: i <= step ? 'var(--coral)' : 'var(--hairline)',
+                  transition: 'background 200ms',
+                }}
+              />
+            ))}
+          </div>
+          <div style={{ padding: '0 28px 14px' }}>
+            <p className="eyebrow">STEP {String(step + 1).padStart(2, '0')} · {current.label}</p>
+          </div>
         </div>
 
-        <StepIndicator steps={STEPS} current={step} />
-
-        {/* Step content */}
+        {/* ── Scrollable content ── */}
         <div
           style={{
+            flex: 1,
+            padding: '12px 28px 24px',
             opacity: animating ? 0 : 1,
             transform: animating ? 'translateY(8px)' : 'translateY(0)',
             transition: 'opacity 0.15s, transform 0.15s',
-            marginTop: 28,
           }}
         >
-          {step === 0 && <StepWho prefs={prefs} update={update} />}
+          <h2 className="display" style={{ fontSize: 32, marginBottom: 28 }}>
+            {current.headline}{' '}
+            <em style={{ fontStyle: 'italic', color: 'var(--coral)' }}>{current.italic}</em>
+          </h2>
+
+          {step === 0 && <StepWho prefs={prefs} update={update} displayName={displayName} />}
           {step === 1 && <StepWhen prefs={prefs} update={update} />}
           {step === 2 && <StepBudget prefs={prefs} update={update} />}
           {step === 3 && <StepInterests prefs={prefs} toggleActivity={toggleActivity} toggleAccommodation={toggleAccommodation} />}
           {step === 4 && <StepNotes prefs={prefs} update={update} />}
         </div>
 
-        {/* Navigation */}
-        <div className="flex items-center justify-between" style={{ marginTop: 36, borderTop: '2.5px solid var(--border-soft)', paddingTop: 24 }}>
+        {/* ── Sticky footer ── */}
+        <div style={{ position: 'sticky', bottom: 0, padding: '16px 28px', borderTop: '1px solid var(--hairline)', background: 'var(--paper)' }}>
           <button
-            onClick={goBack}
-            style={{
-              fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase',
-              color: 'var(--color-ink-2)', background: 'none', border: 'none', cursor: 'pointer', padding: '8px 0',
-            }}
+            className="btn-primary coral"
+            style={{ width: '100%', justifyContent: 'center', padding: '14px', fontSize: 15 }}
+            onClick={goNext}
+            disabled={submitPreferences.isPending}
           >
-            {step === 0 ? 'CANCEL' : '← BACK'}
+            {step === STEPS.length - 1
+              ? submitPreferences.isPending
+                ? <><Loader size={15} className="spin" /> Saving…</>
+                : 'Submit →'
+              : 'Continue →'}
           </button>
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--color-ink-3)', letterSpacing: '0.1em' }}>
-              {step + 1} / {STEPS.length}
-            </span>
-            <button
-              onClick={goNext}
-              className="brut-btn-primary"
-              style={{ fontSize: 12 }}
-            >
-              {step === STEPS.length - 1 ? (
-                submitPreferences.isPending
-                  ? 'SAVING…'
-                  : <><Check size={13} /> SUBMIT</>
-              ) : (
-                <>NEXT <ArrowRight size={13} /></>
-              )}
-            </button>
-          </div>
         </div>
-      </div>
 
+      </div>
     </DocContainer>
   )
 }
@@ -222,46 +279,47 @@ export default function PreferencesPage() {
 function StepWho({
   prefs,
   update,
+  displayName,
 }: {
   prefs: TravelPreferences
   update: <K extends keyof TravelPreferences>(k: K, v: TravelPreferences[K]) => void
+  displayName: string
 }) {
   return (
-    <div className="flex flex-col gap-7">
-      <FormField label="Traveling as">
-        <div
-          style={{
-            fontFamily: 'var(--font-body)', fontSize: 14,
-            color: 'var(--color-ink-2)',
-            background: 'var(--color-surface-2)',
-            border: '2.5px solid var(--border-soft)',
-            padding: '11px 14px',
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
+      {displayName && (
+        <div>
+          <Label>TRAVELING AS</Label>
+          <div style={{
+            padding: '11px 14px', borderRadius: 10,
+            border: '1.5px solid var(--hairline)', background: 'var(--paper-2)',
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          }}
-        >
-          <span>{prefs.travelerName}</span>
-          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: '0.15em', color: 'var(--color-ink-3)' }}>
-            LOCKED
-          </span>
+          }}>
+            <span style={{ fontFamily: 'var(--f-sans)', fontSize: 14, color: 'var(--ink-2)' }}>{displayName}</span>
+            <span className="mono" style={{ fontSize: 9, letterSpacing: '0.15em', color: 'var(--ink-4)' }}>LOCKED</span>
+          </div>
         </div>
-      </FormField>
+      )}
 
-      <FormField label="Flying from" hint="Enter your city or town — we'll find nearby airports">
+      <div>
+        <Label>YOUR CITY</Label>
         <AirportPicker
           cityLabel={prefs.originCity}
           selectedIatas={prefs.originAirports}
           onCityLabel={v => update('originCity', v)}
           onSelectedIatas={v => update('originAirports', v)}
         />
-      </FormField>
+      </div>
 
-      <div className="grid grid-cols-2 gap-6">
-        <FormField label="Adults">
-          <Counter value={prefs.adults} onChange={v => update('adults', v)} min={1} />
-        </FormField>
-        <FormField label="Children">
-          <Counter value={prefs.kids} onChange={v => update('kids', v)} />
-        </FormField>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+        <div>
+          <Label>ADULTS</Label>
+          <Stepper value={prefs.adults} onChange={v => update('adults', v)} min={1} />
+        </div>
+        <div>
+          <Label>KIDS</Label>
+          <Stepper value={prefs.kids} onChange={v => update('kids', v)} />
+        </div>
       </div>
     </div>
   )
@@ -277,22 +335,42 @@ function StepWhen({
   update: <K extends keyof TravelPreferences>(k: K, v: TravelPreferences[K]) => void
 }) {
   return (
-    <div className="flex flex-col gap-7">
-      <div className="grid grid-cols-2 gap-6">
-        <FormField label="Earliest departure">
-          <TextInput
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+        <div>
+          <Label>EARLIEST DEPARTURE</Label>
+          <input
             type="date"
             value={prefs.earliestDeparture}
             onChange={e => update('earliestDeparture', e.target.value)}
+            style={{
+              width: '100%', fontFamily: 'var(--f-sans)', fontSize: 14,
+              color: 'var(--ink)', background: 'var(--paper)',
+              border: '1.5px solid var(--hairline)', borderRadius: 10,
+              padding: '10px 12px', outline: 'none',
+              transition: 'border-color 160ms',
+            }}
+            onFocus={e => { e.currentTarget.style.borderColor = 'var(--ink)' }}
+            onBlur={e => { e.currentTarget.style.borderColor = 'var(--hairline)' }}
           />
-        </FormField>
-        <FormField label="Latest return">
-          <TextInput
+        </div>
+        <div>
+          <Label>LATEST RETURN</Label>
+          <input
             type="date"
             value={prefs.latestReturn}
             onChange={e => update('latestReturn', e.target.value)}
+            style={{
+              width: '100%', fontFamily: 'var(--f-sans)', fontSize: 14,
+              color: 'var(--ink)', background: 'var(--paper)',
+              border: '1.5px solid var(--hairline)', borderRadius: 10,
+              padding: '10px 12px', outline: 'none',
+              transition: 'border-color 160ms',
+            }}
+            onFocus={e => { e.currentTarget.style.borderColor = 'var(--ink)' }}
+            onBlur={e => { e.currentTarget.style.borderColor = 'var(--hairline)' }}
           />
-        </FormField>
+        </div>
       </div>
 
       <Toggle
@@ -301,19 +379,28 @@ function StepWhen({
         label="My dates are flexible — show me deals nearby"
       />
 
-      <FormField label="Trip length (nights)" hint={`${prefs.tripDurationMin}–${prefs.tripDurationMax} nights`}>
-        <div className="flex items-center gap-4">
-          <div className="flex flex-col gap-1 flex-1">
-            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--color-ink-3)', letterSpacing: '0.1em' }}>MIN</span>
-            <Counter value={prefs.tripDurationMin} onChange={v => update('tripDurationMin', Math.min(v, prefs.tripDurationMax))} min={1} max={30} />
+      <div>
+        <Label>TRIP LENGTH (NIGHTS)</Label>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', gap: 12 }}>
+          <div>
+            <p className="mono" style={{ fontSize: 9, color: 'var(--ink-4)', letterSpacing: '0.12em', marginBottom: 6 }}>MIN</p>
+            <Stepper
+              value={prefs.tripDurationMin}
+              onChange={v => update('tripDurationMin', Math.min(v, prefs.tripDurationMax))}
+              min={1} max={30}
+            />
           </div>
-          <span style={{ color: 'var(--color-ink-3)', marginTop: 20 }}>—</span>
-          <div className="flex flex-col gap-1 flex-1">
-            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--color-ink-3)', letterSpacing: '0.1em' }}>MAX</span>
-            <Counter value={prefs.tripDurationMax} onChange={v => update('tripDurationMax', Math.max(v, prefs.tripDurationMin))} min={1} max={30} />
+          <span style={{ color: 'var(--ink-4)', fontSize: 18, marginTop: 20 }}>—</span>
+          <div>
+            <p className="mono" style={{ fontSize: 9, color: 'var(--ink-4)', letterSpacing: '0.12em', marginBottom: 6 }}>MAX</p>
+            <Stepper
+              value={prefs.tripDurationMax}
+              onChange={v => update('tripDurationMax', Math.max(v, prefs.tripDurationMin))}
+              min={1} max={30}
+            />
           </div>
         </div>
-      </FormField>
+      </div>
     </div>
   )
 }
@@ -327,58 +414,96 @@ function StepBudget({
   prefs: TravelPreferences
   update: <K extends keyof TravelPreferences>(k: K, v: TravelPreferences[K]) => void
 }) {
+  const activePreset = BUDGET_PRESETS.find(p => p.min === prefs.budgetMin && p.max === prefs.budgetMax)
+  const barLeft = Math.min((prefs.budgetMin / 10000) * 100, 95)
+  const barRight = Math.max(100 - (prefs.budgetMax / 10000) * 100, 2)
+
   return (
-    <div className="flex flex-col gap-7">
-      <p style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: 'var(--color-ink-2)', lineHeight: 1.65 }}>
-        Budget per person, covering flights and accommodation. Activities and food are extra.
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+      <p style={{ fontFamily: 'var(--f-sans)', fontSize: 13, color: 'var(--ink-2)', lineHeight: 1.55 }}>
+        Per person, flights + accommodation. Food &amp; activities are extra.
       </p>
 
-      <FormField label="Currency">
-        <Select value={prefs.currency} onChange={e => update('currency', e.target.value)}>
-          {CURRENCIES.map(c => <option key={c} value={c}>{c}</option>)}
-        </Select>
-      </FormField>
-
-      <div className="grid grid-cols-2 gap-6">
-        <FormField label={`Minimum (${prefs.currency})`}>
-          <TextInput
-            type="number"
-            value={String(prefs.budgetMin)}
-            onChange={e => update('budgetMin', Number(e.target.value))}
-            placeholder="500"
-          />
-        </FormField>
-        <FormField label={`Maximum (${prefs.currency})`}>
-          <TextInput
-            type="number"
-            value={String(prefs.budgetMax)}
-            onChange={e => update('budgetMax', Number(e.target.value))}
-            placeholder="3000"
-          />
-        </FormField>
+      {/* Big live range display */}
+      <div style={{ background: 'var(--paper-2)', borderRadius: 16, padding: '20px 20px 18px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 10 }}>
+          <span className="mono" style={{ fontSize: 10, color: 'var(--ink-3)', letterSpacing: '0.15em' }}>
+            {prefs.currency} PER PERSON
+          </span>
+          <div style={{ position: 'relative' }}>
+            <select
+              value={prefs.currency}
+              onChange={e => update('currency', e.target.value)}
+              style={{
+                appearance: 'none', background: 'none', border: 'none', cursor: 'pointer',
+                fontFamily: 'var(--f-mono)', fontSize: 10, letterSpacing: '0.12em',
+                textTransform: 'uppercase', color: 'var(--ink-2)', paddingRight: 12,
+              }}
+            >
+              {CURRENCIES.map(c => <option key={c} value={c}>{c}</option>)}
+            </select>
+          </div>
+        </div>
+        <p className="display" style={{ fontSize: 38, marginBottom: 2 }}>
+          {formatBudget(prefs.budgetMin, prefs.budgetMax)}
+        </p>
+        {activePreset && (
+          <p className="mono" style={{ fontSize: 11, color: 'var(--ink-3)' }}>
+            ~ {activePreset.lbl.toLowerCase()} travel
+          </p>
+        )}
+        {/* Range bar visual */}
+        <div style={{ marginTop: 18, position: 'relative', height: 28 }}>
+          <div style={{ position: 'absolute', top: 13, left: 0, right: 0, height: 2, background: 'var(--hairline)', borderRadius: 1 }} />
+          <div style={{
+            position: 'absolute', top: 13, height: 2, background: 'var(--ink)', borderRadius: 1,
+            left: `${barLeft}%`, right: `${barRight}%`,
+            transition: 'left 200ms, right 200ms',
+          }} />
+          <div style={{
+            position: 'absolute', top: 6, left: `${barLeft}%`,
+            width: 16, height: 16, background: 'var(--coral)', borderRadius: '50%',
+            transform: 'translateX(-50%)', border: '2px solid var(--paper)',
+            boxShadow: '0 2px 6px rgba(0,0,0,0.15)', transition: 'left 200ms',
+          }} />
+          <div style={{
+            position: 'absolute', top: 6, left: `${100 - barRight}%`,
+            width: 16, height: 16, background: 'var(--coral)', borderRadius: '50%',
+            transform: 'translateX(-50%)', border: '2px solid var(--paper)',
+            boxShadow: '0 2px 6px rgba(0,0,0,0.15)', transition: 'left 200ms',
+          }} />
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 4 }}>
+          <span className="mono" style={{ fontSize: 10, color: 'var(--ink-3)' }}>$0</span>
+          <span className="mono" style={{ fontSize: 10, color: 'var(--ink-3)' }}>$10k</span>
+        </div>
       </div>
 
-      {/* Budget range bar */}
+      {/* Preset tiles */}
       <div>
-        <div style={{ height: 5, background: 'var(--border-soft)', position: 'relative' }}>
-          <div
-            style={{
-              position: 'absolute',
-              left: `${Math.min((prefs.budgetMin / 10000) * 100, 95)}%`,
-              right: `${Math.max(100 - (prefs.budgetMax / 10000) * 100, 2)}%`,
-              height: '100%',
-              background: 'var(--color-ink)',
-              transition: 'left 0.2s, right 0.2s',
-            }}
-          />
-        </div>
-        <div className="flex justify-between mt-2">
-          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--color-ink-2)' }}>
-            {prefs.currency} {prefs.budgetMin.toLocaleString()}
-          </span>
-          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--color-ink-2)' }}>
-            {prefs.currency} {prefs.budgetMax.toLocaleString()}
-          </span>
+        <Label>QUICK PICK</Label>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+          {BUDGET_PRESETS.map(p => {
+            const sel = p.min === prefs.budgetMin && p.max === prefs.budgetMax
+            return (
+              <button
+                key={p.lbl}
+                type="button"
+                onClick={() => { update('budgetMin', p.min); update('budgetMax', p.max) }}
+                style={{
+                  padding: '12px 14px', textAlign: 'left', borderRadius: 10, cursor: 'pointer',
+                  border: `1.5px solid ${sel ? 'var(--ink)' : 'var(--hairline)'}`,
+                  background: sel ? 'var(--paper-2)' : 'var(--paper)',
+                  fontFamily: 'var(--f-sans)',
+                  transition: 'border-color 150ms, background 150ms',
+                }}
+              >
+                <div style={{ fontSize: 16, marginBottom: 6 }}>{p.emoji}</div>
+                <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--ink)' }}>{p.lbl}</p>
+                <p className="mono" style={{ fontSize: 10, color: 'var(--ink-3)', marginTop: 2 }}>{p.rng}</p>
+              </button>
+            )
+          })}
         </div>
       </div>
     </div>
@@ -397,72 +522,61 @@ function StepInterests({
   toggleAccommodation: (id: string) => void
 }) {
   return (
-    <div className="flex flex-col gap-8">
-      <FormField label="Activities you enjoy" hint="Pick everything that applies">
-        <div className="grid grid-cols-3 gap-2 mt-1">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
+      <div>
+        <p style={{ fontSize: 13, color: 'var(--ink-2)', marginBottom: 20, lineHeight: 1.55 }}>
+          Pick at least 3. More is better — we'll match overlap across the group.
+        </p>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
           {ACTIVITY_OPTIONS.map(({ id, label, emoji }) => {
-            const selected = prefs.activities.includes(id)
+            const sel = prefs.activities.includes(id)
             return (
               <button
                 key={id}
                 type="button"
                 onClick={() => toggleActivity(id)}
                 style={{
-                  fontFamily: 'var(--font-body)',
-                  fontSize: 12,
-                  padding: '10px 8px',
-                  border: '2.5px solid var(--color-ink)',
-                  background: selected ? 'var(--color-ink)' : 'var(--color-bg)',
-                  color: selected ? 'var(--color-bg)' : 'var(--color-ink-2)',
-                  cursor: 'pointer',
-                  transition: 'background 120ms ease, color 120ms ease',
-                  textAlign: 'center',
-                  lineHeight: 1.4,
+                  padding: '16px 8px', borderRadius: 12, cursor: 'pointer',
+                  border: `1.5px solid ${sel ? 'var(--coral)' : 'var(--hairline)'}`,
+                  background: sel ? 'var(--coral-bg)' : 'var(--paper)',
+                  fontFamily: 'var(--f-sans)',
+                  display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6,
+                  transition: 'border-color 150ms, background 150ms',
                 }}
               >
-                <div style={{ fontSize: 18, marginBottom: 4 }}>{emoji}</div>
-                {label}
+                <span style={{ fontSize: 24 }}>{emoji}</span>
+                <span style={{ fontSize: 12, fontWeight: 500, color: sel ? 'var(--coral-fg)' : 'var(--ink)' }}>{label}</span>
               </button>
             )
           })}
         </div>
-      </FormField>
+      </div>
 
-      <FormField label="Accommodation style">
-        <div className="flex flex-col gap-2 mt-1">
+      <div>
+        <Label>ACCOMMODATION</Label>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
           {ACCOMMODATION_OPTIONS.map(({ id, label }) => {
-            const selected = prefs.accommodationTypes.includes(id)
+            const sel = prefs.accommodationTypes.includes(id)
             return (
               <button
                 key={id}
                 type="button"
                 onClick={() => toggleAccommodation(id)}
                 style={{
-                  fontFamily: 'var(--font-body)',
-                  fontSize: 13,
-                  padding: '12px 16px',
-                  border: '2.5px solid var(--color-ink)',
-                  background: selected ? 'var(--color-ink)' : 'var(--color-bg)',
-                  color: selected ? 'var(--color-bg)' : 'var(--color-ink-2)',
-                  cursor: 'pointer',
-                  transition: 'background 120ms ease, color 120ms ease',
-                  textAlign: 'left',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
+                  padding: '8px 16px', fontSize: 13, borderRadius: 999, cursor: 'pointer',
+                  border: `1.5px solid ${sel ? 'var(--ink)' : 'var(--hairline)'}`,
+                  background: sel ? 'var(--ink)' : 'var(--paper)',
+                  color: sel ? 'var(--paper)' : 'var(--ink)',
+                  fontFamily: 'var(--f-sans)', fontWeight: 500,
+                  transition: 'background 150ms, color 150ms, border-color 150ms',
                 }}
               >
                 {label}
-                {selected && (
-                  <svg width="12" height="9" viewBox="0 0 12 9" fill="none">
-                    <path d="M1 4L4.5 7.5L11 1" stroke="var(--color-bg)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                )}
               </button>
             )
           })}
         </div>
-      </FormField>
+      </div>
     </div>
   )
 }
@@ -477,40 +591,33 @@ function StepNotes({
   update: <K extends keyof TravelPreferences>(k: K, v: TravelPreferences[K]) => void
 }) {
   return (
-    <div className="flex flex-col gap-7">
-      <p style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: 'var(--color-ink-2)', lineHeight: 1.7 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+      <p style={{ fontFamily: 'var(--f-sans)', fontSize: 13, color: 'var(--ink-2)', lineHeight: 1.7 }}>
         Anything that would make or break the trip? Dietary needs, accessibility requirements,
         passport restrictions, or simply things you absolutely won't do.
       </p>
 
-      <FormField label="Special requirements or notes">
-        <textarea
-          value={prefs.specialRequirements}
-          onChange={e => update('specialRequirements', e.target.value)}
-          placeholder="e.g. Travelling with a toddler so need direct flights. Vegetarian. No extreme heat."
-          rows={5}
-          style={{
-            fontFamily: 'var(--font-body)',
-            fontSize: 14,
-            color: 'var(--color-ink)',
-            background: 'var(--color-bg)',
-            border: '2.5px solid var(--color-ink)',
-            padding: '12px 14px',
-            outline: 'none',
-            width: '100%',
-            resize: 'vertical',
-            lineHeight: 1.7,
-            transition: 'box-shadow 150ms ease',
-          }}
-          onFocus={e => { e.currentTarget.style.boxShadow = '4px 4px 0 var(--color-ink)' }}
-          onBlur={e => { e.currentTarget.style.boxShadow = 'none' }}
-        />
-      </FormField>
+      <textarea
+        value={prefs.specialRequirements}
+        onChange={e => update('specialRequirements', e.target.value)}
+        placeholder="e.g. Travelling with a toddler so need direct flights. Vegetarian. No extreme heat."
+        rows={5}
+        style={{
+          fontFamily: 'var(--f-sans)', fontSize: 14, color: 'var(--ink)',
+          background: 'var(--paper)',
+          border: '1.5px solid var(--hairline)', borderRadius: 12,
+          padding: '14px 16px', outline: 'none', width: '100%', resize: 'vertical',
+          lineHeight: 1.7, transition: 'border-color 160ms',
+        }}
+        onFocus={e => { e.currentTarget.style.borderColor = 'var(--ink)' }}
+        onBlur={e => { e.currentTarget.style.borderColor = 'var(--hairline)' }}
+      />
 
       {/* Summary */}
-      <div style={{ borderTop: '2.5px solid var(--border-soft)', paddingTop: 20 }}>
-        <p className="brut-label" style={{ marginBottom: 14 }}>YOUR SUBMISSION</p>
-        <div className="flex flex-col gap-2">
+      <div>
+        <hr className="rule" style={{ marginBottom: 20 }} />
+        <p className="eyebrow" style={{ marginBottom: 14 }}>YOUR SUBMISSION</p>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
           {[
             ['Traveler', prefs.travelerName || '—'],
             ['From',     prefs.originAirports.length > 0 ? prefs.originAirports.join(', ') : prefs.originCity || '—'],
@@ -521,11 +628,13 @@ function StepNotes({
           ].map(([k, v]) => (
             <div
               key={k}
-              className="flex justify-between"
-              style={{ borderBottom: '1.5px solid var(--border-soft)', paddingBottom: 8 }}
+              style={{
+                display: 'flex', justifyContent: 'space-between', alignItems: 'baseline',
+                padding: '10px 0', borderBottom: '1px solid var(--hairline)',
+              }}
             >
-              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--color-ink-3)', letterSpacing: '0.1em' }}>{k}</span>
-              <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: 'var(--color-ink)', fontWeight: 500 }}>{v}</span>
+              <span className="mono" style={{ fontSize: 10, color: 'var(--ink-3)', letterSpacing: '0.1em' }}>{k}</span>
+              <span style={{ fontFamily: 'var(--f-sans)', fontSize: 13, color: 'var(--ink)', fontWeight: 500 }}>{v}</span>
             </div>
           ))}
         </div>

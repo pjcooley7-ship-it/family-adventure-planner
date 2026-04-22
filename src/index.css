@@ -1,39 +1,71 @@
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=Space+Mono:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500&family=IBM+Plex+Mono:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap');
 
 @import "tailwindcss";
 
 @theme {
   /* ── Color system ─────────────────────────────── */
-  --color-bg:            #FFFDF7;   /* warm paper white — cards / content bg */
-  --color-surface:       #F5F2EB;   /* page-level surface (behind document) */
-  --color-surface-2:     #EDE9E0;   /* slightly darker surface for map/section bg */
-  --color-ink:           #1a1a1a;   /* near-black — text, borders */
-  --color-ink-2:         #888888;   /* muted text */
-  --color-ink-3:         #aaaaaa;   /* hint / placeholder */
-  --border-soft:         #e8e4dd;   /* internal dividers */
+  --color-bg:            #FFFDF7;
+  --color-surface:       #F7F3EA;
+  --color-surface-2:     #EDE8DC;
+  --color-ink:           #1A1A1A;
+  --color-ink-2:         #5A5752;
+  --color-ink-3:         #8F8A80;
+  --color-ink-4:         #C4BFB3;
+  --border-soft:         #E6E0D2;
 
-  /* Accents — use semantically */
-  --color-green:         #1D9E75;   /* positive / success */
+  /* Accents */
+  --color-green:         #1D9E75;
   --color-green-fg:      #0F6E56;
-  --color-green-bg:      #EAF7F2;
-  --color-amber:         #EF9F27;   /* warning / attention */
-  --color-amber-fg:      #BA7517;
+  --color-green-bg:      #E3F2EC;
+  --color-amber:         #EF9F27;
+  --color-amber-fg:      #9A6410;
   --color-amber-bg:      #FEF4E2;
-  --color-coral:         #D85A30;   /* negative / alert */
+  --color-coral:         #D85A30;
   --color-coral-fg:      #993C1D;
   --color-coral-bg:      #FBE9E3;
-  --color-purple:        #7F77DD;   /* decorative */
-  --color-teal:          #5DCAA5;   /* decorative */
+  --color-purple:        #7F77DD;
+  --color-teal:          #5DCAA5;
 
-  /* Legacy aliases (keep for any references) */
+  /* Legacy aliases */
   --color-accent:        #D85A30;
   --color-accent-bg:     #FBE9E3;
   --color-accent-dark:   #993C1D;
 
   /* ── Typography ───────────────────────────────── */
-  --font-display: 'DM Sans', system-ui, sans-serif;
+  --font-display: 'Fraunces', Georgia, serif;
   --font-body:    'DM Sans', system-ui, sans-serif;
-  --font-mono:    'Space Mono', 'Courier New', monospace;
+  --font-mono:    'IBM Plex Mono', 'Space Mono', 'Courier New', monospace;
+}
+
+/* ── Design system tokens (used by new components) ───────────────────────── */
+:root {
+  --paper:    #FFFDF7;
+  --paper-2:  #F7F3EA;
+  --paper-3:  #EDE8DC;
+  --ink:      #1A1A1A;
+  --ink-2:    #5A5752;
+  --ink-3:    #8F8A80;
+  --ink-4:    #C4BFB3;
+  --hairline: #E6E0D2;
+
+  --coral:    #D85A30;
+  --coral-bg: #FBE9E3;
+  --coral-fg: #993C1D;
+  --green:    #1D9E75;
+  --green-bg: #E3F2EC;
+  --green-fg: #0F6E56;
+  --amber:    #EF9F27;
+  --amber-bg: #FEF4E2;
+  --amber-fg: #9A6410;
+  --plum:     #7F77DD;
+
+  --f-display: 'Fraunces', Georgia, serif;
+  --f-sans:    'DM Sans', system-ui, sans-serif;
+  --f-mono:    'IBM Plex Mono', 'Space Mono', 'Courier New', monospace;
+
+  --s-1:  4px;  --s-2:  8px;  --s-3: 12px; --s-4: 16px;
+  --s-5: 20px;  --s-6: 24px;  --s-7: 32px; --s-8: 40px;
+  --s-9: 56px;  --s-10: 72px;
 }
 
 * {
@@ -60,143 +92,97 @@ html {
   background-color: var(--color-surface);
 }
 
-/* ── Brutalist utility classes ────────────────────────────────────────────── */
-
-/* Primary button — black fill, inverts on hover */
-.brut-btn-primary {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  background: var(--color-ink);
-  color: var(--color-bg);
-  border: 2.5px solid var(--color-ink);
-  font-family: var(--font-body);
-  font-size: 14px;
-  font-weight: 500;
-  padding: 10px 16px;
-  cursor: pointer;
-  transition: background 150ms ease, color 150ms ease, transform 100ms ease, box-shadow 100ms ease;
-}
-.brut-btn-primary:hover:not(:disabled) {
-  background: var(--color-bg);
-  color: var(--color-ink);
-}
-.brut-btn-primary:active:not(:disabled) {
-  transform: translate(1px, 1px);
-  box-shadow: 2px 2px 0 var(--color-ink);
-}
-.brut-btn-primary:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
-/* Secondary (ghost) button — transparent fill, inverts on hover */
-.brut-btn-ghost {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  background: transparent;
-  color: var(--color-ink);
-  border: 2.5px solid var(--color-ink);
-  font-family: var(--font-mono);
-  font-size: 11px;
-  font-weight: 400;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  padding: 10px 16px;
-  cursor: pointer;
-  transition: background 150ms ease, color 150ms ease, transform 100ms ease, box-shadow 100ms ease;
-}
-.brut-btn-ghost:hover {
-  background: var(--color-ink);
-  color: var(--color-bg);
-}
-.brut-btn-ghost:active {
-  transform: translate(1px, 1px);
-  box-shadow: 2px 2px 0 var(--color-ink);
-}
-
-/* Card — thick border, offset hover shadow */
-.brut-card {
-  background: var(--color-bg);
-  border: 2.5px solid var(--color-ink);
-  transition: transform 150ms ease, box-shadow 150ms ease;
-}
-.brut-card:hover {
-  transform: translate(-2px, -2px);
-  box-shadow: 4px 4px 0 var(--color-ink);
-}
-
-/* Inline mono label */
-.brut-label {
-  font-family: var(--font-mono);
-  font-size: 10px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--color-ink-2);
-}
-
-/* Input base */
-.brut-input {
-  background: var(--color-bg);
-  border: 2.5px solid var(--color-ink);
-  font-family: var(--font-body);
-  font-size: 15px;
-  color: var(--color-ink);
-  padding: 12px 14px;
-  outline: none;
-  width: 100%;
-  transition: box-shadow 150ms ease;
-}
-.brut-input::placeholder {
-  font-family: var(--font-mono);
-  font-size: 12px;
-  color: var(--color-ink-3);
-}
-.brut-input:focus {
-  box-shadow: 4px 4px 0 var(--color-ink);
-}
-
 /* Display / body font utilities */
 .font-display { font-family: var(--font-display); }
 .font-mono    { font-family: var(--font-mono); }
 
-/* ── Status badge helpers ──────────────────────────────────────────────────── */
-.badge-positive {
-  font-family: var(--font-mono);
+/* ── New design system utilities ─────────────────────────────────────────── */
+
+.eyebrow {
+  font-family: var(--f-mono);
   font-size: 10px;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: var(--color-green-fg);
-  border: 2px solid var(--color-green);
-  padding: 2px 8px;
+  color: var(--ink-2);
+  font-weight: 500;
 }
-.badge-warning {
-  font-family: var(--font-mono);
-  font-size: 10px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--color-amber-fg);
-  border: 2px solid var(--color-amber);
-  padding: 2px 8px;
+.eyebrow-ink { color: var(--ink); }
+
+.display {
+  font-family: var(--f-display);
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  line-height: 1.02;
 }
-.badge-negative {
-  font-family: var(--font-mono);
-  font-size: 10px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--color-coral-fg);
-  border: 2px solid var(--color-coral);
-  padding: 2px 8px;
+
+.mono { font-family: var(--f-mono); }
+
+.rule { border: 0; border-top: 1px solid var(--hairline); }
+
+/* Primary pill button — coral variant is the one true CTA */
+.btn-primary {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: var(--ink); color: var(--paper);
+  border: none; border-radius: 999px;
+  font-family: var(--f-sans); font-size: 14px; font-weight: 500;
+  padding: 12px 22px; cursor: pointer;
+  transition: transform 160ms cubic-bezier(.2,.7,.3,1), background 160ms, box-shadow 160ms;
 }
-.badge-neutral {
-  font-family: var(--font-mono);
-  font-size: 10px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--color-ink-2);
-  border: 2px solid var(--color-ink-3);
-  padding: 2px 8px;
+.btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(0,0,0,0.15); }
+.btn-primary:active { transform: translateY(0); }
+.btn-primary.coral { background: var(--coral); }
+.btn-primary.coral:hover { background: #c24e28; }
+.btn-primary:disabled { opacity: 0.45; cursor: not-allowed; transform: none; box-shadow: none; }
+
+/* Ghost pill button */
+.btn-ghost {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: transparent; color: var(--ink);
+  border: 1.5px solid var(--ink); border-radius: 999px;
+  font-family: var(--f-sans); font-size: 13px; font-weight: 500;
+  padding: 11px 20px; cursor: pointer;
+  transition: background 160ms, color 160ms;
+}
+.btn-ghost:hover { background: var(--ink); color: var(--paper); }
+
+/* Text / tertiary button — mono uppercase */
+.btn-text {
+  background: none; border: none; padding: 0; cursor: pointer;
+  font-family: var(--f-mono); font-size: 11px; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--ink-2);
+}
+.btn-text:hover { color: var(--ink); }
+
+/* Underline-only input */
+.input-underline {
+  width: 100%; background: var(--paper); color: var(--ink);
+  border: none; border-bottom: 1.5px solid var(--ink-4);
+  font-family: var(--f-sans); font-size: 16px;
+  padding: 10px 2px; outline: none;
+  transition: border-color 160ms;
+}
+.input-underline::placeholder { color: var(--ink-3); }
+.input-underline:focus { border-bottom-color: var(--ink); }
+
+/* Chip / pill */
+.chip-new {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-family: var(--f-mono); font-size: 10px;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  padding: 4px 10px; border-radius: 999px;
+  background: var(--paper-3); color: var(--ink-2);
+}
+.chip-new.green { background: var(--green-bg); color: var(--green-fg); }
+.chip-new.amber { background: var(--amber-bg); color: var(--amber-fg); }
+.chip-new.coral { background: var(--coral-bg); color: var(--coral-fg); }
+.chip-new.ink   { background: var(--ink);      color: var(--paper); }
+
+/* Avatar circle */
+.avatar {
+  width: 36px; height: 36px; border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-family: var(--f-display); font-weight: 500; font-size: 15px;
+  flex-shrink: 0;
 }
 
 /* ── Animations ───────────────────────────────────────────────────────────── */
@@ -249,13 +235,10 @@ html {
 .delay-1000 { animation-delay: 1.00s; }
 .delay-1200 { animation-delay: 1.20s; }
 
-/* ── Brutalist loading spinner ────────────────────────────────────────────── */
-.brut-spinner {
-  width: 28px;
-  height: 28px;
-  border: 2.5px solid var(--color-ink);
-  animation: spin 700ms linear infinite;
-}
+@keyframes spinK  { to { transform: rotate(360deg); } }
+@keyframes pulseK { 0%,100%{opacity:.4} 50%{opacity:1} }
+.spin  { animation: spinK  900ms linear infinite; }
+.pulse { animation: pulseK 1.4s  ease-in-out infinite; }
 
 /* ── Mobile responsiveness ────────────────────────────────────────────────── */
 

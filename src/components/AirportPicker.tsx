@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { Search, X, MapPin, Loader } from 'lucide-react'
+import { Search, X, Loader } from 'lucide-react'
 import { geocodeCity, findNearbyAirports, type NearbyAirport } from '@/lib/airportUtils'
 
 const regionNames = new Intl.DisplayNames(['en'], { type: 'region' })
@@ -83,18 +83,15 @@ export function AirportPicker({
   }
 
   return (
-    <div className="flex flex-col gap-3">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
       {/* City search input */}
       <div style={{ position: 'relative' }}>
-        <div
-          style={{
-            position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)',
-            color: status === 'searching' ? 'var(--color-ink)' : 'var(--color-ink-3)',
-            pointerEvents: 'none',
-          }}
-        >
+        <div style={{
+          position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)',
+          color: 'var(--ink-3)', pointerEvents: 'none',
+        }}>
           {status === 'searching'
-            ? <Loader size={14} style={{ animation: 'spin 1s linear infinite' }} />
+            ? <Loader size={14} className="spin" />
             : <Search size={14} />}
         </div>
         <input
@@ -103,18 +100,14 @@ export function AirportPicker({
           onChange={e => { setQuery(e.target.value); onCityLabel(e.target.value) }}
           placeholder="Enter your city or town…"
           style={{
-            fontFamily: 'var(--font-body)',
-            fontSize: 14,
-            color: 'var(--color-ink)',
-            background: 'var(--color-bg)',
-            border: '2.5px solid var(--color-ink)',
-            padding: '11px 14px 11px 36px',
-            outline: 'none',
-            width: '100%',
-            transition: 'box-shadow 150ms ease',
+            fontFamily: 'var(--f-sans)', fontSize: 15, color: 'var(--ink)',
+            background: 'var(--paper)',
+            border: '1.5px solid var(--hairline)', borderRadius: 10,
+            padding: '11px 36px 11px 36px', outline: 'none', width: '100%',
+            transition: 'border-color 160ms',
           }}
-          onFocus={e => { e.currentTarget.style.boxShadow = '4px 4px 0 var(--color-ink)' }}
-          onBlur={e => { e.currentTarget.style.boxShadow = 'none' }}
+          onFocus={e => { e.currentTarget.style.borderColor = 'var(--ink)' }}
+          onBlur={e => { e.currentTarget.style.borderColor = 'var(--hairline)' }}
         />
         {query && (
           <button
@@ -123,7 +116,7 @@ export function AirportPicker({
             style={{
               position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)',
               background: 'none', border: 'none', cursor: 'pointer',
-              color: 'var(--color-ink-3)', padding: 2,
+              color: 'var(--ink-3)', padding: 2,
             }}
           >
             <X size={13} />
@@ -131,14 +124,13 @@ export function AirportPicker({
         )}
       </div>
 
-      {/* Status feedback */}
       {status === 'not-found' && (
-        <p style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--color-coral)' }}>
+        <p className="mono" style={{ fontSize: 11, color: 'var(--coral)' }}>
           Location not found — try a nearby larger city.
         </p>
       )}
       {error && (
-        <p style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--color-coral)' }}>
+        <p className="mono" style={{ fontSize: 11, color: 'var(--coral)' }}>
           {error}
         </p>
       )}
@@ -146,14 +138,16 @@ export function AirportPicker({
       {/* Nearby airports */}
       {status === 'found' && nearby.length > 0 && (
         <div>
-          <div className="flex items-center justify-between mb-2">
-            <p className="brut-label">NEARBY AIRPORTS — SELECT UP TO {MAX_SELECTED}</p>
-            <p style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--color-ink-3)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+            <p className="mono" style={{ fontSize: 10, color: 'var(--ink-3)', letterSpacing: '0.15em' }}>
+              NEARBY AIRPORTS
+            </p>
+            <p className="mono" style={{ fontSize: 10, color: 'var(--ink-3)' }}>
               {selectedIatas.length}/{MAX_SELECTED}
             </p>
           </div>
 
-          <div className="flex flex-col gap-1.5">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {nearby.map(airport => {
               const selected = selectedIatas.includes(airport.iata)
               const maxed = !selected && selectedIatas.length >= MAX_SELECTED
@@ -165,68 +159,42 @@ export function AirportPicker({
                   onClick={() => toggle(airport.iata)}
                   disabled={maxed}
                   style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    padding: '10px 12px',
-                    border: '2.5px solid var(--color-ink)',
-                    background: selected ? 'var(--color-ink)' : 'var(--color-bg)',
-                    cursor: maxed ? 'not-allowed' : 'pointer',
-                    opacity: maxed ? 0.35 : 1,
-                    transition: 'background 150ms ease, box-shadow 150ms ease',
+                    padding: '12px 14px', borderRadius: 10, cursor: maxed ? 'not-allowed' : 'pointer',
+                    background: selected ? 'var(--paper-2)' : 'transparent',
+                    border: `1.5px solid ${selected ? 'var(--ink)' : 'var(--hairline)'}`,
+                    display: 'flex', alignItems: 'center', gap: 12,
+                    opacity: maxed ? 0.4 : 1,
+                    transition: 'background 150ms, border-color 150ms',
                     textAlign: 'left', width: '100%',
                   }}
-                  onMouseEnter={e => { if (!maxed && !selected) e.currentTarget.style.boxShadow = '3px 3px 0 var(--color-ink)' }}
-                  onMouseLeave={e => { if (!maxed && !selected) e.currentTarget.style.boxShadow = 'none' }}
                 >
-                  {/* Checkbox + info */}
-                  <div className="flex items-center gap-3">
-                    <div style={{
-                      width: 16, height: 16, flexShrink: 0,
-                      border: '2px solid',
-                      borderColor: selected ? 'var(--color-bg)' : 'var(--color-ink)',
-                      background: selected ? 'var(--color-bg)' : 'transparent',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    }}>
-                      {selected && (
-                        <svg width="9" height="7" viewBox="0 0 9 7" fill="none">
-                          <path d="M1 3L3.5 5.5L8 1" stroke="#1a1a1a" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                        </svg>
-                      )}
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+                      <span className="mono" style={{ fontSize: 13, fontWeight: 700, letterSpacing: '0.08em', color: 'var(--ink)', flexShrink: 0 }}>
+                        {airport.iata}
+                      </span>
+                      <span style={{ fontFamily: 'var(--f-sans)', fontSize: 13, fontWeight: 500, color: 'var(--ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {airport.name.replace(' International Airport', ' Intl').replace(' International', ' Intl')}
+                      </span>
                     </div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span style={{
-                          fontFamily: 'var(--font-mono)', fontWeight: 700, fontSize: 12,
-                          color: selected ? 'var(--color-bg)' : 'var(--color-ink)',
-                        }}>
-                          {airport.iata}
-                        </span>
-                        <span style={{
-                          fontFamily: 'var(--font-body)', fontSize: 13,
-                          color: selected ? 'rgba(255,253,247,0.75)' : 'var(--color-ink-2)',
-                        }}>
-                          {airport.name.replace(' International Airport', ' Intl').replace(' International', ' Intl')}
-                        </span>
-                      </div>
-                      <p style={{
-                        fontFamily: 'var(--font-mono)', fontSize: 10, marginTop: 1,
-                        color: selected ? 'rgba(255,253,247,0.5)' : 'var(--color-ink-3)',
-                      }}>
-                        {countryName(airport.country)}
-                      </p>
-                    </div>
+                    <p className="mono" style={{ fontSize: 10, color: 'var(--ink-3)', marginTop: 2 }}>
+                      {Math.round(airport.distanceMiles)} mi · {countryName(airport.country)}
+                    </p>
                   </div>
 
-                  {/* Distance */}
-                  <div className="flex items-center gap-1" style={{ flexShrink: 0, marginLeft: 12 }}>
-                    <MapPin size={10} style={{ color: selected ? 'rgba(255,253,247,0.5)' : 'var(--color-ink-3)' }} />
-                    <span style={{
-                      fontFamily: 'var(--font-mono)', fontSize: 10,
-                      color: selected ? 'rgba(255,253,247,0.5)' : 'var(--color-ink-3)',
-                    }}>
-                      {Math.round(airport.distanceMiles)} mi
-                    </span>
+                  {/* Checkbox on right */}
+                  <div style={{
+                    width: 20, height: 20, borderRadius: 4, flexShrink: 0,
+                    border: `1.5px solid ${selected ? 'var(--ink)' : 'var(--ink-4)'}`,
+                    background: selected ? 'var(--ink)' : 'transparent',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    transition: 'background 150ms, border-color 150ms',
+                  }}>
+                    {selected && (
+                      <svg width="11" height="8" viewBox="0 0 11 8" fill="none">
+                        <path d="M1 4L4 7L10 1" stroke="var(--paper)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    )}
                   </div>
                 </button>
               )
@@ -234,27 +202,26 @@ export function AirportPicker({
           </div>
 
           {selectedIatas.length === 0 && (
-            <p style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--color-ink-3)', marginTop: 8, letterSpacing: '0.05em' }}>
+            <p className="mono" style={{ fontSize: 10, color: 'var(--ink-3)', marginTop: 8, letterSpacing: '0.05em' }}>
               Select the airport(s) you'd prefer to fly from.
             </p>
           )}
         </div>
       )}
 
-      {/* Selected chips */}
+      {/* Selected chips when list is hidden */}
       {selectedIatas.length > 0 && status !== 'found' && (
-        <div className="flex flex-wrap gap-2">
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
           {selectedIatas.map(iata => (
             <div
               key={iata}
-              className="flex items-center gap-2"
               style={{
-                border: '2.5px solid var(--color-ink)',
-                background: 'var(--color-ink)',
-                padding: '4px 10px',
+                display: 'flex', alignItems: 'center', gap: 6,
+                background: 'var(--ink)', borderRadius: 999,
+                padding: '5px 12px',
               }}
             >
-              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12, fontWeight: 700, color: 'var(--color-bg)' }}>
+              <span className="mono" style={{ fontSize: 12, fontWeight: 700, color: 'var(--paper)' }}>
                 {iata}
               </span>
               <button
