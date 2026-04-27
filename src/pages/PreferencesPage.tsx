@@ -50,13 +50,13 @@ function Stepper({ value, onChange, min = 0, max = 99 }: { value: number; onChan
       <button
         type="button"
         onClick={() => onChange(Math.max(min, value - 1))}
-        style={{ width: 28, height: 28, border: 'none', background: 'var(--paper-2)', borderRadius: 6, cursor: 'pointer', fontSize: 16, color: 'var(--ink)', fontFamily: 'var(--f-sans)', lineHeight: 1 }}
+        style={{ width: 40, height: 40, border: 'none', background: 'var(--paper-2)', borderRadius: 8, cursor: 'pointer', fontSize: 18, color: 'var(--ink)', fontFamily: 'var(--f-sans)', lineHeight: 1 }}
       >−</button>
       <span style={{ flex: 1, textAlign: 'center', fontSize: 18, fontWeight: 600, fontFamily: 'var(--f-sans)', color: 'var(--ink)' }}>{value}</span>
       <button
         type="button"
         onClick={() => onChange(Math.min(max, value + 1))}
-        style={{ width: 28, height: 28, border: 'none', background: 'var(--paper-2)', borderRadius: 6, cursor: 'pointer', fontSize: 16, color: 'var(--ink)', fontFamily: 'var(--f-sans)', lineHeight: 1 }}
+        style={{ width: 40, height: 40, border: 'none', background: 'var(--paper-2)', borderRadius: 8, cursor: 'pointer', fontSize: 18, color: 'var(--ink)', fontFamily: 'var(--f-sans)', lineHeight: 1 }}
       >+</button>
     </div>
   )
@@ -203,7 +203,7 @@ export default function PreferencesPage() {
 
   return (
     <DocContainer>
-      <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100dvh' }}>
 
         {/* ── Sticky header ── */}
         <div style={{ position: 'sticky', top: 0, zIndex: 10, background: 'var(--paper)' }}>
@@ -254,7 +254,7 @@ export default function PreferencesPage() {
         </div>
 
         {/* ── Sticky footer ── */}
-        <div style={{ position: 'sticky', bottom: 0, padding: '16px 28px', borderTop: '1px solid var(--hairline)', background: 'var(--paper)' }}>
+        <div style={{ position: 'sticky', bottom: 0, padding: '16px 28px', paddingBottom: 'max(16px, calc(16px + env(safe-area-inset-bottom)))', borderTop: '1px solid var(--hairline)', background: 'var(--paper)' }}>
           <button
             className="btn-primary coral"
             style={{ width: '100%', justifyContent: 'center', padding: '14px', fontSize: 15 }}
@@ -414,68 +414,78 @@ function StepBudget({
   prefs: TravelPreferences
   update: <K extends keyof TravelPreferences>(k: K, v: TravelPreferences[K]) => void
 }) {
+  const MAX = 10000
   const activePreset = BUDGET_PRESETS.find(p => p.min === prefs.budgetMin && p.max === prefs.budgetMax)
-  const barLeft = Math.min((prefs.budgetMin / 10000) * 100, 95)
-  const barRight = Math.max(100 - (prefs.budgetMax / 10000) * 100, 2)
+  const barLeft = (prefs.budgetMin / MAX) * 100
+  const barRight = 100 - (prefs.budgetMax / MAX) * 100
+  const displayRange = prefs.budgetMax >= MAX
+    ? `${formatBudget(prefs.budgetMin, prefs.budgetMax).split(' – ')[0]} – $10k+`
+    : formatBudget(prefs.budgetMin, prefs.budgetMax)
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+      <style>{`
+        .wl-range { position:absolute; width:100%; height:100%; -webkit-appearance:none; appearance:none; pointer-events:none; background:transparent; outline:none; margin:0; }
+        .wl-range::-webkit-slider-runnable-track { -webkit-appearance:none; height:2px; background:transparent; }
+        .wl-range::-webkit-slider-thumb { -webkit-appearance:none; pointer-events:all; width:20px; height:20px; border-radius:50%; background:var(--coral); cursor:grab; border:2px solid var(--paper); box-shadow:0 2px 6px rgba(0,0,0,.18); margin-top:-9px; }
+        .wl-range:active::-webkit-slider-thumb { cursor:grabbing; }
+        .wl-range::-moz-range-thumb { pointer-events:all; width:16px; height:16px; border-radius:50%; background:var(--coral); cursor:grab; border:2px solid var(--paper); box-shadow:0 2px 6px rgba(0,0,0,.18); }
+        .wl-range::-moz-range-track { background:transparent; }
+      `}</style>
+
       <p style={{ fontFamily: 'var(--f-sans)', fontSize: 13, color: 'var(--ink-2)', lineHeight: 1.55 }}>
         Per person, flights + accommodation. Food &amp; activities are extra.
       </p>
 
-      {/* Big live range display */}
+      {/* Live range display + slider */}
       <div style={{ background: 'var(--paper-2)', borderRadius: 16, padding: '20px 20px 18px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 10 }}>
           <span className="mono" style={{ fontSize: 10, color: 'var(--ink-3)', letterSpacing: '0.15em' }}>
             {prefs.currency} PER PERSON
           </span>
-          <div style={{ position: 'relative' }}>
-            <select
-              value={prefs.currency}
-              onChange={e => update('currency', e.target.value)}
-              style={{
-                appearance: 'none', background: 'none', border: 'none', cursor: 'pointer',
-                fontFamily: 'var(--f-mono)', fontSize: 10, letterSpacing: '0.12em',
-                textTransform: 'uppercase', color: 'var(--ink-2)', paddingRight: 12,
-              }}
-            >
-              {CURRENCIES.map(c => <option key={c} value={c}>{c}</option>)}
-            </select>
-          </div>
+          <select
+            value={prefs.currency}
+            onChange={e => update('currency', e.target.value)}
+            style={{
+              appearance: 'none', background: 'none', border: 'none', cursor: 'pointer',
+              fontFamily: 'var(--f-mono)', fontSize: 10, letterSpacing: '0.12em',
+              textTransform: 'uppercase', color: 'var(--ink-2)',
+            }}
+          >
+            {CURRENCIES.map(c => <option key={c} value={c}>{c}</option>)}
+          </select>
         </div>
-        <p className="display" style={{ fontSize: 38, marginBottom: 2 }}>
-          {formatBudget(prefs.budgetMin, prefs.budgetMax)}
+        <p className="display" style={{ fontSize: 38, marginBottom: 2 }}>{displayRange}</p>
+        <p className="mono" style={{ fontSize: 11, color: 'var(--ink-3)', minHeight: 16 }}>
+          {activePreset ? `~ ${activePreset.lbl.toLowerCase()} travel` : 'custom budget'}
         </p>
-        {activePreset && (
-          <p className="mono" style={{ fontSize: 11, color: 'var(--ink-3)' }}>
-            ~ {activePreset.lbl.toLowerCase()} travel
-          </p>
-        )}
-        {/* Range bar visual */}
+
+        {/* Dual range slider */}
         <div style={{ marginTop: 18, position: 'relative', height: 28 }}>
-          <div style={{ position: 'absolute', top: 13, left: 0, right: 0, height: 2, background: 'var(--hairline)', borderRadius: 1 }} />
+          <div style={{ position: 'absolute', top: '50%', left: 0, right: 0, height: 2, background: 'var(--hairline)', borderRadius: 1, transform: 'translateY(-50%)' }} />
           <div style={{
-            position: 'absolute', top: 13, height: 2, background: 'var(--ink)', borderRadius: 1,
-            left: `${barLeft}%`, right: `${barRight}%`,
-            transition: 'left 200ms, right 200ms',
+            position: 'absolute', top: '50%', height: 2, background: 'var(--ink)', borderRadius: 1,
+            left: `${barLeft}%`, right: `${barRight}%`, transform: 'translateY(-50%)',
+            transition: 'left 60ms, right 60ms',
           }} />
-          <div style={{
-            position: 'absolute', top: 6, left: `${barLeft}%`,
-            width: 16, height: 16, background: 'var(--coral)', borderRadius: '50%',
-            transform: 'translateX(-50%)', border: '2px solid var(--paper)',
-            boxShadow: '0 2px 6px rgba(0,0,0,0.15)', transition: 'left 200ms',
-          }} />
-          <div style={{
-            position: 'absolute', top: 6, left: `${100 - barRight}%`,
-            width: 16, height: 16, background: 'var(--coral)', borderRadius: '50%',
-            transform: 'translateX(-50%)', border: '2px solid var(--paper)',
-            boxShadow: '0 2px 6px rgba(0,0,0,0.15)', transition: 'left 200ms',
-          }} />
+          <input
+            type="range" className="wl-range"
+            min={0} max={MAX} step={100}
+            value={prefs.budgetMin}
+            style={{ zIndex: prefs.budgetMin > MAX / 2 ? 2 : 1 }}
+            onChange={e => update('budgetMin', Math.min(Number(e.target.value), prefs.budgetMax - 100))}
+          />
+          <input
+            type="range" className="wl-range"
+            min={0} max={MAX} step={100}
+            value={prefs.budgetMax}
+            style={{ zIndex: prefs.budgetMin > MAX / 2 ? 1 : 2 }}
+            onChange={e => update('budgetMax', Math.max(Number(e.target.value), prefs.budgetMin + 100))}
+          />
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 4 }}>
           <span className="mono" style={{ fontSize: 10, color: 'var(--ink-3)' }}>$0</span>
-          <span className="mono" style={{ fontSize: 10, color: 'var(--ink-3)' }}>$10k</span>
+          <span className="mono" style={{ fontSize: 10, color: 'var(--ink-3)' }}>$10k+</span>
         </div>
       </div>
 
@@ -634,7 +644,7 @@ function StepNotes({
               }}
             >
               <span className="mono" style={{ fontSize: 10, color: 'var(--ink-3)', letterSpacing: '0.1em' }}>{k}</span>
-              <span style={{ fontFamily: 'var(--f-sans)', fontSize: 13, color: 'var(--ink)', fontWeight: 500 }}>{v}</span>
+              <span style={{ fontFamily: 'var(--f-sans)', fontSize: 13, color: 'var(--ink)', fontWeight: 500, maxWidth: '60%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{v}</span>
             </div>
           ))}
         </div>

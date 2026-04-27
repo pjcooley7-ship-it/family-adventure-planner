@@ -27,3 +27,9 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Supabase CLI temp files
+supabase/.temp/
+
+# MCP config
+.mcp.json

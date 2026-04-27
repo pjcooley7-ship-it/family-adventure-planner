@@ -5,6 +5,27 @@ import { supabase } from '@/integrations/supabase/client'
 import type { TravelPreferences } from '@/lib/types'
 import type { Trip } from '@/integrations/supabase/types'
 
+async function fireNotification(type: string, tripId: string) {
+  try {
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) return
+    await fetch(
+      `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-notification`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session.access_token}`,
+          apikey: import.meta.env.VITE_SUPABASE_ANON_KEY,
+        },
+        body: JSON.stringify({ type, tripId }),
+      },
+    )
+  } catch {
+    // notifications are best-effort — never surface errors to the user
+  }
+}
+
 // ── Create a new trip ─────────────────────────────────────────
 
 export function useCreateTrip() {
@@ -110,6 +131,7 @@ export function useLockDestination(tripId: string) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['trip', tripId] })
       toast.success("It's decided! Your destination is locked in.")
+      fireNotification('destination-decided', tripId)
     },
     onError: (err: Error) => {
       toast.error(err.message)
@@ -158,6 +180,7 @@ export function useSubmitPreferences(tripId: string) {
       queryClient.invalidateQueries({ queryKey: ['my-preferences', tripId] })
       queryClient.invalidateQueries({ queryKey: ['trip-members', tripId] })
       toast.success('Preferences saved!')
+      fireNotification('all-prefs-in', tripId)
       navigate(`/trip/${tripId}`)
     },
     onError: (err: Error) => {

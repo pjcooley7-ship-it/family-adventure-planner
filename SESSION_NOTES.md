@@ -119,11 +119,10 @@ Collaborative trip planner for groups spread across the world. Each traveler sub
 - [x] Merge `redesign/ux-cleanup` → `main` and push
 
 ### Phase 4 (on main, after redesign merged)
-- [ ] Deploy `search-flights` v2: `brew install supabase/tap/supabase` → `supabase login` → `supabase functions deploy search-flights --project-ref agbrfodytojzcyvnooec`
-- [ ] **Email notifications** — Resend.com, `RESEND_API_KEY` secret, `send-notification` edge function, DB trigger when all members submit prefs
-- [ ] **Trip status emails** — invite, "all prefs in", "destination decided"
+- [x] Deploy `search-flights` v2 — deployed 2026-04-23
+- [x] **Email notifications** — `send-notification` deployed 2026-04-27; RESEND_API_KEY set as Supabase secret; sends `all-prefs-in` and `destination-decided` emails via Resend shared domain
 - [ ] Activities API (GetYourGuide or Viator) — replace Claude-generated links with real bookable inventory
-- [ ] PreferencesPage mobile audit (low priority)
+- [x] PreferencesPage mobile audit — 100dvh, safe-area footer, 40px stepper tap targets, Step 5 value truncation (2026-04-27)
 
 ---
 
@@ -207,6 +206,14 @@ Collaborative trip planner for groups spread across the world. Each traveler sub
 - TypeScript clean (`tsc --noEmit` passes)
 - Snapshot: `v5-prefs-redesign` (landing, auth, join) — ~/ui-snapshots/wanderlust/2026-04-22-v5-prefs-redesign/
 - **Next:** Landing page redesign — reference: `design_handoff_ux_cleanup/screens-landing.jsx`
+
+### 2026-04-23 — Session 15 (search-flights deploy + email notification groundwork)
+- Installed Supabase CLI v2.90.0 via Homebrew (required Xcode CLT update from 14.3.1 → 26.4 first)
+- Deployed `search-flights` v2 to production (`supabase functions deploy search-flights --project-ref agbrfodytojzcyvnooec`)
+- Built `send-notification` edge function: handles `all-prefs-in` and `destination-decided` types, fetches member emails via service role, sends via Resend.com
+- Wired `useTripMutations.ts`: `useSubmitPreferences.onSuccess` fires `all-prefs-in` (edge function guards against sending before all prefs are in); `useLockDestination.onSuccess` fires `destination-decided`
+- **Blocked on `RESEND_API_KEY`** — function is ready to deploy, just needs the secret set
+- **Next:** Sign up at resend.com → set secret → `supabase functions deploy send-notification ...`
 
 ### 2026-04-22 — Session 14 (Results + Decided + Generating redesign; merge to main)
 - Rebuilt `ResultsPage.tsx` to new design — three states in one file:
